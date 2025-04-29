@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 16385 \
 --cluster_num_replicas 1 \
@@ -11,7 +11,7 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --synthetic_request_generator_length_provider synthetic \
 --synthetic_request_generator_length_provider trace \
 --synthetic_request_generator_interval_provider static \
---trace_request_length_generator_trace_file /home/amey/sarathi-lean/osdi-experiments/figure-2/prefill_operation_time_split_experiment_trace.csv \
+--trace_request_length_generator_trace_file /home/ab73456/sarathi-serve/osdi-experiments/figure-2/prefill_operation_time_split_experiment_trace.csv \
 --trace_request_length_generator_max_tokens 16385 \
 --trace_request_length_generator_prefill_scale_factor 1 \
 --trace_request_length_generator_decode_scale_factor 1 \
@@ -25,8 +25,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_prefill_split_35fdcdac \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 16385 \
 --cluster_num_replicas 1 \
@@ -36,7 +36,7 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --synthetic_request_generator_length_provider synthetic \
 --synthetic_request_generator_length_provider trace \
 --synthetic_request_generator_interval_provider static \
---trace_request_length_generator_trace_file /home/amey/sarathi-lean/osdi-experiments/figure-2/prefill_operation_time_split_experiment_trace.csv \
+--trace_request_length_generator_trace_file /home/ab73456/sarathi-serve/osdi-experiments/figure-2/prefill_operation_time_split_experiment_trace.csv \
 --trace_request_length_generator_max_tokens 16385 \
 --trace_request_length_generator_prefill_scale_factor 1 \
 --trace_request_length_generator_decode_scale_factor 1 \
@@ -50,8 +50,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_prefill_split_35fdcdac \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -74,8 +74,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_1_decode_split_f2142876 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -98,8 +98,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_1_decode_split_f2142876 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -122,8 +122,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_2_decode_split_cd69e1d1 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -146,8 +146,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_2_decode_split_cd69e1d1 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -170,8 +170,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_4_decode_split_81daea07 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -194,8 +194,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_4_decode_split_81daea07 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -218,8 +218,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_8_decode_split_015f87c4 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -242,8 +242,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_8_decode_split_015f87c4 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -266,8 +266,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_16_decode_split_ad8b7534 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -290,8 +290,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_16_decode_split_ad8b7534 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -314,8 +314,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_32_decode_split_d0049dc7 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -338,8 +338,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_32_decode_split_d0049dc7 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -362,8 +362,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_64_decode_split_96a02bf7 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -386,8 +386,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_64_decode_split_96a02bf7 \
 --metrics_store_enable_op_level_metrics true 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \
@@ -410,8 +410,8 @@ CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
 --metrics_store_wandb_run_name Yi-34B-200K_tp_2_seq_len_1024_decode_batch_size_128_decode_split_7e79ce63 \
 --metrics_store_enable_op_level_metrics false 
 
-CUDA_VISIBLE_DEVICES=0,1 python sarathi/benchmark/main.py \
---output_dir /home/amey/sarathi-lean/osdi-experiments/figure-2/benchmark_output \
+CUDA_VISIBLE_DEVICES=0,1 python /home/ab73456/sarathi-serve/sarathi/benchmark/main.py \
+--output_dir /home/ab73456/sarathi-serve/osdi-experiments/figure-2/benchmark_output \
 --model_name 01-ai/Yi-34B-200K \
 --model_max_model_len 1024 \
 --cluster_num_replicas 1 \

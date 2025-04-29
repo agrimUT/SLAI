@@ -28,6 +28,7 @@ class Sequence:
         eos_token_id: int,
         arrival_time: float,
         sampling_params: SamplingParams,
+        tbt = Optional[float],
     ) -> None:
         self.seq_id = seq_id
         self.prompt = prompt
@@ -36,6 +37,8 @@ class Sequence:
         self.arrival_time = arrival_time
         self.sampling_params = sampling_params
         self.prompt_token_ids = prompt_token_ids
+        self.last_schedulable_time = float("inf")
+        self.time_between_tokens = tbt
 
         self.output_token_ids: List[int] = []
         self.prompt_tokens_processed = 0

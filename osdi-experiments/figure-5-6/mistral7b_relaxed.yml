@@ -11,13 +11,13 @@ schedulers:
     batch_size: 128
 
 traces:
-  - name: chat
-    trace_file: "./data/processed_traces/sharegpt_8k_filtered_stats_llama2_tokenizer.csv"
-    max_seq_len: 8192
-    num_requests: 2048
-    start_qps: 4
+  # - name: chat
+  #   trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/sharegpt_8k_filtered_stats_llama2_tokenizer.csv"
+  #   max_seq_len: 8192
+  #   num_requests: 2048
+  #   start_qps: 4
   - name: arxiv
-    trace_file: "./data/processed_traces/arxiv_summarization_filtered_stats_llama2_tokenizer.csv"
+    trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/arxiv_summarization_filtered_stats_llama2_tokenizer.csv"
     max_seq_len: 16384
     num_requests: 2048
     start_qps: 2

@@ -23,7 +23,7 @@ def release_resources_on_failure(func):
         try:
             return func(self, *args, **kwargs)
         except Exception as e:
-            logger.error(f"Error in search: {e}", flush=True)
+            logger.error(f"Error in search: {e}")
             self.release_resources()
 
     return wrapper
@@ -58,7 +58,7 @@ class CapacitySearch:
             f"--replica_resource_mapping '{json.dumps(self.resource_mapping)}'"
         )
         command = f"python -m sarathi.benchmark.main {benchmark_config.to_args()} {resource_mapping_arg}"
-        logger.debug(f"Running command: {command}", flush=True)
+        logger.debug(f"Running command: {command}")
 
         return command
 
@@ -93,8 +93,7 @@ class CapacitySearch:
         logger.info(
             f"{benchmark_config.to_human_readable_name()} - "
             f"Scheduling delay (P{self.args.scheduling_delay_slo_quantile}): {scheduling_delay}"
-            f" - TBT (P{self.args.tbt_slo_quantile}): {tbt}",
-            flush=True,
+            f" - TBT (P{self.args.tbt_slo_quantile}): {tbt}"
         )
         return (
             is_under_scheduling_delay_sla,
@@ -156,9 +155,7 @@ class CapacitySearch:
         Perform binary search to find the maximum QPS under the SLO
         """
         logger.info(
-            f"Starting search for {self.job_config.get_human_readable_name()}",
-            flush=True,
-        )
+            f"Starting search for {self.job_config.get_human_readable_name()}")
 
         left = 0
         right = self.job_config.start_qps * 2
@@ -173,7 +170,7 @@ class CapacitySearch:
         found_valid_qps = False
 
         for _ in range(self.args.max_iterations):
-            logger.info(f"Searching between {left} and {right}", flush=True)
+            logger.info(f"Searching between {left} and {right}")
             # stopping condition - we have reached the minimum granularity
             if abs(left - right) < self.args.min_search_granularity * qps / 100:
                 break
@@ -222,15 +219,13 @@ class CapacitySearch:
 
         if not found_valid_qps:
             logger.info(
-                f"No valid QPS found for {self.job_config.get_human_readable_name()}",
-                flush=True,
+                f"No valid QPS found for {self.job_config.get_human_readable_name()}"
             )
             return {}
 
         logger.info(
             f"Max QPS under SLO for {self.job_config.get_human_readable_name()} - "
-            f"QPS: {max_qps_under_sla}, Scheduling delay: {scheduling_delay_at_max_qps}, TBT: {tbt_at_max_qps}",
-            flush=True,
+            f"QPS: {max_qps_under_sla}, Scheduling delay: {scheduling_delay_at_max_qps}, TBT: {tbt_at_max_qps}"
         )
         best_run = wandb.Api().run(f"{self.args.wandb_project}/{best_run_id}")
         best_run.tags.append("BEST_CONFIG")

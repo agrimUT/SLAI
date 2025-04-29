@@ -282,6 +282,14 @@ class BaseLLMEngine:
 
         end_time = time.perf_counter()
 
+        # To ensure backward compatibility, I haved added this check so that we only do post batch processing for our scheduler only
+        if hasattr(self.scheduler, 'post_batch_completion_processing'):
+            self.scheduler.post_batch_completion_processing(
+                processed_sequences=seq_metadata_list,
+                batch_start_time=start_time,
+                batch_end_time=end_time,
+            )
+
         self.metrics_store.on_batch_end(
             seq_metadata_list=seq_metadata_list,
             scheduler_outputs=scheduler_outputs,

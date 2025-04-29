@@ -17,6 +17,7 @@ class SchedulerType(BaseIntEnum):
     FASTER_TRANSFORMER = 3
     SARATHI = 4
     SIMPLE_CHUNKING = 5
+    LAST_MINUTE = 6
 
 
 class ModelConfig:
@@ -384,6 +385,33 @@ class SarathiSchedulerConfig(BaseSchedulerConfig):
     def type(self):
         return SchedulerType.SARATHI
 
+class LastMinuteSchedulerConfig(BaseSchedulerConfig):
+
+    def __init__(
+        self,
+        max_num_seqs: int,
+        max_model_len: int,
+        num_pipeline_stages: int,
+        chunk_size: Optional[int],
+        offset : Optional[int],
+        time_between_tokens: Optional[float],
+    ) -> None:
+        super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
+        self.chunk_size = chunk_size
+        self.offset = offset
+        self.time_between_tokens = time_between_tokens
+
+    @property
+    def max_num_batched_tokens(self):
+        # Sarathi never schedules more than chunk_size tokens in one iteration.
+        if self.enable_dynamic_chunking_schedule:
+            return self.high_chunk_size
+        else:
+            return self.chunk_size
+
+    @property
+    def type(self):
+        return SchedulerType.LAST_MINUTE
 
 class MetricsConfig:
     """Metric configuration."""
