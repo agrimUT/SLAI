@@ -17,6 +17,7 @@ from sarathi.config import (
     SchedulerType,
     SimpleChunkingSchedulerConfig,
     VLLMSchedulerConfig,
+    LastMinuteSchedulerConfig,
 )
 
 
@@ -39,7 +40,7 @@ class EngineArgs:
     pipeline_parallel_size: int = 1
     tensor_parallel_size: int = 1
     block_size: int = 16
-    gpu_memory_utilization: float = 0.85
+    gpu_memory_utilization: float = 0.80
     revision: Optional[str] = None
     # scheduler parameters
     scheduler_type: str = "sarathi"
@@ -54,6 +55,10 @@ class EngineArgs:
     high_chunk_size: Optional[int] = None
     chunk_schedule_max_tokens: Optional[int] = None
     chunk_schedule_stages: Optional[int] = None
+    # last minute scheduler parameters
+    token_budget : int = 512 # Add your token budget argument
+    offset: float = 2 # Add your offset argument
+    time_between_tokens: float = 0.5 # Add your tbt argument
     # Metrics store parameters
     write_metrics: bool = True
     output_dir: str = "."
@@ -117,6 +122,15 @@ class EngineArgs:
                 model_config.get_max_model_len(),
                 num_pipeline_stages,
                 self.chunk_size,
+            )
+        elif self.scheduler_type == SchedulerType.LAST_MINUTE.name.lower():
+            scheduler_config = LastMinuteSchedulerConfig(
+                self.max_num_seqs,
+                model_config.get_max_model_len(),
+                num_pipeline_stages,
+                self.token_budget,
+                self.offset,
+                self.time_between_tokens,
             )
         else:
             raise ValueError(f"Unsupported scheduler type: {self.scheduler_type}")

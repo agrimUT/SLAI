@@ -392,22 +392,19 @@ class LastMinuteSchedulerConfig(BaseSchedulerConfig):
         max_num_seqs: int,
         max_model_len: int,
         num_pipeline_stages: int,
-        chunk_size: Optional[int],
-        offset : Optional[int],
-        time_between_tokens: Optional[float],
+        token_budget: int,
+        offset : float,
+        time_between_tokens: float,
     ) -> None:
         super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
-        self.chunk_size = chunk_size
+        self.token_budget = token_budget
         self.offset = offset
         self.time_between_tokens = time_between_tokens
 
     @property
     def max_num_batched_tokens(self):
-        # Sarathi never schedules more than chunk_size tokens in one iteration.
-        if self.enable_dynamic_chunking_schedule:
-            return self.high_chunk_size
-        else:
-            return self.chunk_size
+        # maximum number of tokens to be processed in a single iteration
+        return self.token_budget
 
     @property
     def type(self):

@@ -22,11 +22,16 @@ schedulers:
     scheduler: sarathi
     chunk_size: 4096
     batch_size: 128
+  - name: last_minute
+    scheduler: last_minute
+    token_budget: 512
+    offset: 2
+    time_between_tokens: 0.5
 
 traces:
   - name: chat
     trace_file: "./data/processed_traces/sharegpt_8k_filtered_stats_llama2_tokenizer.csv"
-    max_seq_len: 8192
+    max_seq_len: 256
     num_requests: 2048
     start_qps: 4
   - name: arxiv

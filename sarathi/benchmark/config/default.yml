@@ -1,11 +1,11 @@
 seed: 42
-log_level: info
+log_level: debug
 output_dir: ./benchmark_output/
 write_json_trace: true
 write_chrome_trace: true
 write_metrics: true
 enable_profiling: false
-gpu_memory_utilization: 0.85
+gpu_memory_utilization: 0.80
 time_limit: 1800 # seconds
 replica_resource_mapping: ""
 
@@ -92,6 +92,11 @@ vllm_scheduler:
 
 simple_chunking_scheduler:
   chunk_size: 512
+
+last_minute_scheduler:
+  token_budget: 512
+  offset: 2
+  time_between_tokens: 0.5
 
 metrics_store:
   wandb_project: ""

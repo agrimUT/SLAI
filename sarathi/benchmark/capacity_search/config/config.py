@@ -72,6 +72,9 @@ class SchedulerConfig:
     scheduler: str
     batch_size: int
     chunk_size: Optional[int] = None
+    token_budget : Optional[int] = None
+    offset: Optional[float] = None
+    time_between_tokens: Optional[float] = None
 
     def get_key(self):
         key = f"{self.scheduler}_bs{self.batch_size}"
@@ -101,6 +104,17 @@ class SchedulerConfig:
                 "replica_scheduler_provider": "sarathi",
                 "replica_scheduler_max_batch_size": self.batch_size,
                 "sarathi_scheduler_chunk_size": self.chunk_size,
+            }
+        elif self.scheduler == "last_minute":
+            assert self.token_budget is not None
+            assert self.offset is not None
+            assert self.time_between_tokens is not None
+            return {
+                "replica_scheduler_provider": "last_minute",
+                "replica_scheduler_max_batch_size": self.batch_size,
+                "last_minute_scheduler_token_budget": self.token_budget,
+                "last_minute_scheduler_offset": self.offset,
+                "last_minute_scheduler_time_between_tokens": self.time_between_tokens,
             }
         else:
             raise ValueError(f"Unknown scheduler: {self.scheduler}")

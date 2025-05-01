@@ -8,8 +8,9 @@ from sarathi.core.block_space_manager.sarathi_block_space_manager import (
     SarathiBlockSpaceManager,
 )
 from sarathi.core.datatypes.scheduler_output import SchedulerOutputs
-from sarathi.core.datatypes.sequence import Sequence, SequenceScheduleMetadata, SequenceMetadata
+from sarathi.core.datatypes.sequence import Sequence, SequenceScheduleMetadata
 from sarathi.core.scheduler.base_scheduler import BaseScheduler
+from sarathi.core.datatypes.sequence_status import SequenceStatus  
 from sarathi.logger import init_logger
 
 logger = init_logger(__name__)
@@ -25,14 +26,14 @@ class LastMinuteScheduler(BaseScheduler):
         super().__init__(scheduler_config, cache_config)
 
         self.prompt_limit = self.scheduler_config.max_model_len
-        self.token_budget = self.scheduler_config.chunk_size
-        self.offset = self.scheduler_config.offset
+        self.token_budget = self.scheduler_config.token_budget
+        self.offset = self.scheduler_config.offset * 1
         self.next_batch_run_time_for_decode = float("inf")
         self.minimum_time_between_tokens = float("inf")
         self.last_batch_start_time = 0
         self.last_batch_end_time = 0
         self.time_between_tokens = self.scheduler_config.time_between_tokens
-        self.decode_queue: List[Tuple[float, int, Sequence]] = []
+        self.decode_queue: List[Tuple[float, int, Sequence]] = [] # Store LST, ID, and Sequence obj
 
     def get_block_space_manager_class(self):
         return SarathiBlockSpaceManager
@@ -59,9 +60,10 @@ class LastMinuteScheduler(BaseScheduler):
         self.last_batch_end_time = batch_end_time
         
     def _post_batch_processing(self) -> None:
-        if(self.running.size() == 0):
+        if(len(self.running) == 0):
             return 
         # check if there was a decode job in the batch 
+        logger.debug(f"Running _post_batch_processing based on previous self.running (size {len(self.running)})")
         decode_job_in_batch = False
         for seq in self.running:
             if seq.prompt_processing_finished:
@@ -84,12 +86,15 @@ class LastMinuteScheduler(BaseScheduler):
                     if self.next_batch_run_time_for_decode == float("inf"):
                         self.next_batch_run_time_for_decode = self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
                     seq.last_schedulable_time = min(self.next_batch_run_time_for_decode, self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time))
-                    heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq)) 
+                    heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.seq_id, seq)) 
+                    logger.debug(f"Seq {seq.seq_id}: Calculated LST = {seq.last_schedulable_time}")
+                    logger.debug(f"Seq {seq.seq_id}: Pushing ({seq.last_schedulable_time}, seq_id={seq.seq_id}) to heap.")
                 else: 
                     self.waiting.insert(0, seq)
             else:
                 seq.last_schedulable_time = self.next_batch_run_time_for_decode
-                heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq)) 
+                heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.seq_id, seq)) 
+
     
     def _schedule(self) -> SchedulerOutputs:
         # Fix the current time.
@@ -101,14 +106,31 @@ class LastMinuteScheduler(BaseScheduler):
         scheduled_seq_metadata_list: List[SequenceScheduleMetadata] = []
         num_batched_tokens: int = 0
 
-        self._post_batch_processing()
-        
+        logger.debug(f"--- Schedule Step {self._iteration_id} ---")
+        logger.debug(f"Time: {now}")
+        logger.debug(f"State BEFORE post_batch: Running={len(self.running)}, Waiting={len(self.waiting)}, DecodeHeap={len(self.decode_queue)}")
+        # Log top few heap items if not empty
+        if self.decode_queue:
+            top_items = heapq.nsmallest(5, self.decode_queue)
+            logger.debug(f"DecodeHeap Top 5 (LST, SeqID): {[(lst, seq_id, s) for lst, seq_id, s in top_items]}")
+
+        self._post_batch_processing() # Call the state update logic
+
+        logger.debug(f"State AFTER post_batch: Running={len(self.running)}, Waiting={len(self.waiting)}, DecodeHeap={len(self.decode_queue)}")
+        if self.decode_queue:
+            top_items = heapq.nsmallest(5, self.decode_queue)
+            logger.debug(f"DecodeHeap Top 5 (LST, SeqID) after update: {[(lst, seq_id, s) for lst, seq_id, s in top_items]}")
+
+        # Log free blocks
+        free_blocks = self.block_manager.get_num_free_gpu_blocks()
+        logger.debug(f"Free Blocks: {free_blocks}")
         # Remove things from decode queue that have finished everything? Depends on when is the status of different jobs set        
         while self.decode_queue and num_batched_tokens < self.token_budget: 
-            seq = self.decode_queue[0][1]
+            seq = self.decode_queue[0][2]
             if now >= seq.last_schedulable_time: 
                 if self.block_manager.can_append_slot():
-                    seq = heapq.heappop(self.decode_queue)[1]
+                    seq = heapq.heappop(self.decode_queue)[2]
+                    seq.status = SequenceStatus.RUNNING
                     self._append_slot(seq)
                     running.append(seq)
                     num_batched_tokens += 1
@@ -116,7 +138,7 @@ class LastMinuteScheduler(BaseScheduler):
                         SequenceScheduleMetadata.from_sequence(seq)
                     )
                 else:
-                    logger.warning(f"No slot for critical decode seq {seq.seq_id}. Preemption needed?")
+                    logger.debug(f"No slot for critical decode seq {seq.seq_id}. Preemption needed?")
                     break 
             else:
                 break
@@ -150,6 +172,7 @@ class LastMinuteScheduler(BaseScheduler):
 
             seq = self.waiting.pop(0)
             self._allocate(seq)
+            seq.status = SequenceStatus.RUNNING
             num_batched_tokens += next_num_prefill_tokens
             scheduled_seq_metadata_list.append(
                 SequenceScheduleMetadata.from_sequence(
@@ -159,9 +182,10 @@ class LastMinuteScheduler(BaseScheduler):
             running.append(seq)
         # now go through the remaining decode queue and add them to batch if there is space 
         while self.decode_queue and num_batched_tokens < self.token_budget:
-            seq = self.decode_queue[0][1]
+            seq = self.decode_queue[0][2]
             if self.block_manager.can_append_slot():
-                seq = heapq.heappop(self.decode_queue)[1]
+                seq = heapq.heappop(self.decode_queue)[2]
+                seq.status = SequenceStatus.RUNNING
                 self._append_slot(seq)
                 running.append(seq)
                 num_batched_tokens += 1
@@ -173,7 +197,7 @@ class LastMinuteScheduler(BaseScheduler):
             
         
         self.running = running
-
+        logger.debug(f"State AFTER scheduling: Running={len(self.running)}, Waiting={len(self.waiting)}, DecodeHeap={len(self.decode_queue)}")
         return SchedulerOutputs(
             id=self._iteration_id,
             ignored_seq_ids=ignored_seq_ids,
