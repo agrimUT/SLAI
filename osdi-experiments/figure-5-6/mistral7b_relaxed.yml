@@ -5,16 +5,17 @@ schedulers:
   # - name: orca
   #   scheduler: orca
   #   batch_size: 16 # with higher batch size activation and kv cache memory blows up
-  - name: sarathi_2048
-    scheduler: sarathi
-    chunk_size: 4096
-    batch_size: 128
-  # - name: last_minute
-  #   scheduler: last_minute
-  #   token_budget: 2048
+  # - name: sarathi_2048
+  #   scheduler: sarathi
+  #   chunk_size: 2048
   #   batch_size: 128
-  #   offset: 2
-  #   time_between_tokens: 0.5
+  - name: last_minute_512
+    scheduler: last_minute
+    token_budget: 512
+    batch_size: 128
+    offset: 2
+    time_between_tokens: 0.5
+    capacity: 39       
 
 
 traces:
@@ -22,7 +23,7 @@ traces:
     trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/sharegpt_8k_filtered_stats_llama2_tokenizer.csv"
     max_seq_len: 256
     num_requests: 2048
-    start_qps: 20
+    start_qps: 4
   # - name: arxiv
   #   trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/arxiv_summarization_filtered_stats_llama2_tokenizer.csv"
   #   max_seq_len: 16384

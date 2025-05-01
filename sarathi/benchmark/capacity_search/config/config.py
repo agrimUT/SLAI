@@ -75,6 +75,7 @@ class SchedulerConfig:
     token_budget : Optional[int] = None
     offset: Optional[float] = None
     time_between_tokens: Optional[float] = None
+    capacity: Optional[float] = None       
 
     def get_key(self):
         key = f"{self.scheduler}_bs{self.batch_size}"

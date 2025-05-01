@@ -5,6 +5,7 @@ from sarathi.benchmark.capacity_search.config.config import (
     ParallelConfig,
     SchedulerConfig,
     TraceConfig,
+    _get_hash
 )
 
 __all__ = [
