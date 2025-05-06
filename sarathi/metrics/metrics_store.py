@@ -528,6 +528,14 @@ class MetricsStore(metaclass=Singleton):
         self.batch_metrics_count_distribution[
             BatchMetricsCountDistribution.BATCH_SIZE
         ].put_pair(scheduler_outputs.id, len(seq_metadata_list))
+
+        self.batch_metrics_count_distribution[
+            BatchMetricsCountDistribution.BATCH_NUM_TIME_CRITICAL_DECODE_TOKENS
+        ].put_pair(scheduler_outputs.id, scheduler_outputs.num_time_critical_decodes)
+
+        self.batch_metrics_count_distribution[
+            BatchMetricsCountDistribution.BATCH_NUM_NONCRITICAL_DECODE_TOKENS
+        ].put_pair(scheduler_outputs.id, scheduler_outputs.num_noncritical_decodes)
         # add the only time distribution we have for batch
         self.batch_metrics_time_distribution[
             BatchMetricsTimeDistribution.BATCH_EXECUTION_TIME

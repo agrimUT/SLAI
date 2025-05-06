@@ -94,6 +94,10 @@ class BenchmarkRunner:
             chunk_schedule_stages=self._config.sarathi_scheduler_chunk_schedule_stages,
             # vllm scheduler config
             max_num_batched_tokens=self._config.vllm_scheduler_max_tokens_in_batch,
+            # last‑minute scheduler config
+            token_budget=self._config.last_minute_scheduler_token_budget,
+            offset=self._config.last_minute_scheduler_offset,
+            time_between_tokens=self._config.last_minute_scheduler_time_between_tokens,
             # wandb config
             write_metrics=self._config.write_metrics,
             enable_chrome_trace=self._config.write_chrome_trace,

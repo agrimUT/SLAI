@@ -8,6 +8,10 @@ For each eligible JobConfig we run the benchmark at 10 QPS points between
 
   • p99  decode_token_execution_plus_preemption_time
   • chosen-quantile (default P50) request_scheduling_delay
+  • mean decode_token_execution_plus_preemption_time
+  • mean batch_execution_time
+  • mean batch_num_noncritical_decode_tokens
+  • mean batch_num_time_critical_decode_tokens
   • scheduler name
 
 Results are written to
@@ -64,6 +68,9 @@ def _metric_csv(run_path: Path, metric: str) -> Path | None:
                         recursive=True)
     return Path(matches[0]) if matches else None
 
+def _get_seq_metric_csv(run_path: Path, metric: str) -> Path | None:
+    matches = glob.glob(str(run_path / "**" /f"{metric}.csv"), recursive=True)
+    return Path(matches[0]) if matches else None
 
 # --- PATCH 4: launch benchmark with GPU mapping ---------------------------
 def _launch_benchmark(cfg: BenchmarkConfig,
@@ -112,11 +119,22 @@ def _acquire_mapping(num_gpus: int) -> dict:
             time.sleep(0.2)
     return mapping
 
-def _load_quantile(csv_file: Path, column: str, q: float) -> float:
+def get_quantile(csv_file: Path, metric: str, quantile: float) -> float:
     df = pd.read_csv(csv_file)
-    return float(df[column].quantile(q))
+    return df.loc[df["cdf"] >= quantile, metric].iloc[0]
 
+def get_mean(csv_file: Path, metric: str) -> float:
+    df = pd.read_csv(csv_file)
+    u = df["cdf"].to_numpy()                          # the quantile levels, from 0.0 → 1.0
+    x = df[metric].to_numpy()                         # the corresponding values Q(u)
+    mean_batch_exec_time = np.trapezoid(x, u)
+    return mean_batch_exec_time
 
+def get_mean_and_std(csv_file: Path, metric: str) -> Tuple[float, float]:
+    df = pd.read_csv(csv_file)
+    mean = df[metric].mean()
+    std = df[metric].std()
+    return mean, std
 # ----------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------
@@ -154,36 +172,41 @@ def main() -> None:
             )
 
             run_dir = Path(bench_cfg.get_run_dir())
-            sched_csv = _metric_csv(run_dir, "request_scheduling_delay")
-            tbt_csv = _metric_csv(run_dir,
-                                  "decode_token_execution_plus_preemption_time")
-
-            if sched_csv is None or tbt_csv is None:
-                _launch_benchmark(
-                    bench_cfg,
-                    num_gpus=job.get_num_gpus(),        # ← PATCH 5: pass GPU count
-                    log_file=run_dir / "output.log",
-                )
-                sched_csv = _metric_csv(run_dir, "request_scheduling_delay")
-                tbt_csv = _metric_csv(
-                    run_dir, "decode_token_execution_plus_preemption_time")
-
-            p99_tbt = _load_quantile(
-                tbt_csv,
-                "decode_token_execution_plus_preemption_time",
-                0.99,
+            _launch_benchmark(
+                bench_cfg,
+                num_gpus=job.get_num_gpus(),
+                log_file=run_dir / "output.log",
             )
-            sched_delay = _load_quantile(
-                sched_csv,
-                "request_scheduling_delay",
-                args.sched_delay_quantile,
-            )
+            sched_csv = _metric_csv(run_dir, "request_scheduling_delay") # TTFT 
+            tbt_csv   = _metric_csv(run_dir, "decode_token_execution_plus_preemption_time") # TBT
+            bet_csv = _metric_csv(run_dir, "batch_execution_time") # BET
+            tcdt_csv = _metric_csv(run_dir, "batch_num_time_critical_decode_tokens") # TCDT
+            ncdt_csv = _metric_csv(run_dir, "batch_num_noncritical_decode_tokens") # NCDT
+            pft_csv = _metric_csv(run_dir, "batch_num_prefill_tokens") # PFT
+            sequence_csv = _get_seq_metric_csv(run_dir, "sequence_metrics") # SL
+            # p99 decode‐token execution+preemption time
+            p99_tbt = get_quantile(tbt_csv, "decode_token_execution_plus_preemption_time", 0.99) 
+            # chosen scheduling‐delay quantile
+            sched_delay_median = get_quantile(sched_csv, "request_scheduling_delay", args.sched_delay_quantile)
+            mean_decode_tbt = get_mean(tbt_csv, "decode_token_execution_plus_preemption_time")
+            mean_batch_exec_time = get_mean(bet_csv, "batch_execution_time")
+            mean_noncritical_decode_tokens = get_mean(ncdt_csv, "batch_num_noncritical_decode_tokens")
+            mean_timecritical_decode_tokens = get_mean(tcdt_csv, "batch_num_time_critical_decode_tokens")
+            mean_prefill_tokens = get_mean(pft_csv, "batch_num_prefill_tokens")
+            mean_pd_ratio, std_pd_ratio = get_mean_and_std(sequence_csv, "request_pd_ratio")
 
             rows.append(dict(
                 scheduler=job.scheduler_config.name,
                 qps=qps,
                 p99_tbt_seconds=p99_tbt,
-                **{f"sched_delay_{q_label}_seconds": sched_delay},
+                mean_decode_tbt_seconds=mean_decode_tbt,
+                mean_batch_exec_time_seconds=mean_batch_exec_time,
+                mean_noncritical_decode_tokens=mean_noncritical_decode_tokens,
+                mean_timecritical_decode_tokens=mean_timecritical_decode_tokens,
+                mean_prefill_tokens=mean_prefill_tokens,
+                mean_pd_ratio=mean_pd_ratio,
+                std_pd_ratio=std_pd_ratio,
+                **{f"sched_delay_{q_label}_seconds": sched_delay_median},
             ))
 
         # write one CSV per job

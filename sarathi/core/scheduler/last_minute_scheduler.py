@@ -101,6 +101,8 @@ class LastMinuteScheduler(BaseScheduler):
         preempted_seq_ids: List[int] = []
         scheduled_seq_metadata_list: List[SequenceScheduleMetadata] = []
         num_batched_tokens: int = 0
+        critical_decodes = 0
+        noncritical_decodes = 0
 
         self._post_batch_processing() # Add sequences to decode queue and paused prefill 
         self.paused_prefills = self.policy.sort_by_priority(now, self.paused_prefills) # sort paused prefill sequences based on FCFS
@@ -109,6 +111,7 @@ class LastMinuteScheduler(BaseScheduler):
             seq = self.decode_queue[0][2]
             if now >= seq.last_schedulable_time: 
                 seq = heapq.heappop(self.decode_queue)[2]
+                critical_decodes += 1
                 if not seq.is_paused():
                     running.append(seq)
                     continue
@@ -119,6 +122,7 @@ class LastMinuteScheduler(BaseScheduler):
                         self._preempt(victim_seq)
                         preempted_seq_ids.append(victim_seq.seq_id)
                     else:
+                        critical_decodes -= 1
                         self._preempt(seq)
                         preempted_seq_ids.append(seq.seq_id)
                         break 
@@ -191,6 +195,7 @@ class LastMinuteScheduler(BaseScheduler):
         # now go through the remaining decode queue and add them to batch if there is space 
         while self.decode_queue and num_batched_tokens < self.token_budget:
             seq = heapq.heappop(self.decode_queue)[2]
+            noncritical_decodes += 1
             if not seq.is_paused():
                 running.append(seq)
                 continue
@@ -201,6 +206,7 @@ class LastMinuteScheduler(BaseScheduler):
                     self._preempt(victim_seq)
                     preempted_seq_ids.append(victim_seq.seq_id)
                 else:
+                    noncritical_decodes -= 1
                     self._preempt(seq)
                     preempted_seq_ids.append(seq.seq_id)
                     break 
@@ -221,4 +227,6 @@ class LastMinuteScheduler(BaseScheduler):
             ignored_seq_ids=ignored_seq_ids,
             preempted_seq_ids=preempted_seq_ids,
             scheduled_seq_metadata_list=scheduled_seq_metadata_list,
+            num_time_critical_decodes=critical_decodes,
+            num_noncritical_decodes=noncritical_decodes,
         )

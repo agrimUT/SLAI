@@ -83,6 +83,14 @@ class SchedulerConfig:
         if self.chunk_size is not None:
             key += f"_cs{self.chunk_size}"
 
+        if self.scheduler == "last_minute":
+            assert self.token_budget is not None and self.offset is not None and self.time_between_tokens is not None
+            key += (
+                f"_tb{self.token_budget}"
+                f"_off{self.offset:.1f}"
+                f"_tbt{self.time_between_tokens:.1f}"
+            )
+
         return key
 
     def get_human_readable_name(self):

@@ -92,6 +92,8 @@ class BatchMetricsCountDistribution(enum.Enum):
     BATCH_NUM_PREFILL_TOKENS = "batch_num_prefill_tokens"
     BATCH_NUM_DECODE_TOKENS = "batch_num_decode_tokens"
     BATCH_SIZE = "batch_size"
+    BATCH_NUM_TIME_CRITICAL_DECODE_TOKENS = "batch_num_time_critical_decode_tokens"
+    BATCH_NUM_NONCRITICAL_DECODE_TOKENS = "batch_num_noncritical_decode_tokens"
 
 
 class BatchMetricsTimeDistribution(enum.Enum):

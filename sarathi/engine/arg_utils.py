@@ -56,9 +56,9 @@ class EngineArgs:
     chunk_schedule_max_tokens: Optional[int] = None
     chunk_schedule_stages: Optional[int] = None
     # last minute scheduler parameters
-    token_budget : int = 512 # Add your token budget argument
-    offset: float = 2 # Add your offset argument
-    time_between_tokens: float = 0.5 # Add your tbt argument
+    token_budget : Optional[int] = None # Add your token budget argument
+    offset: Optional[float] = None # Add your offset argument
+    time_between_tokens: Optional[float] = None # Add your tbt argument
     # Metrics store parameters
     write_metrics: bool = True
     output_dir: str = "."
@@ -124,6 +124,9 @@ class EngineArgs:
                 self.chunk_size,
             )
         elif self.scheduler_type == SchedulerType.LAST_MINUTE.name.lower():
+            assert self.token_budget is not None, "token_budget must be set for last minute scheduler"
+            assert self.offset is not None, "offset must be set for last minute scheduler"
+            assert self.time_between_tokens is not None, "time_between_tokens must be set for last minute scheduler"
             scheduler_config = LastMinuteSchedulerConfig(
                 self.max_num_seqs,
                 model_config.get_max_model_len(),
