@@ -10,21 +10,22 @@ schedulers:
   #   chunk_size: 2048
   #   batch_size: 128
   #   capacity: 2
-  - name: last_minute_cs512_bs128_offset5
+  - name: last_minute_cs512_bs128_offset20_psptrue
     scheduler: last_minute
-    token_budget: 512 
+    token_budget: 512
     batch_size: 128
     offset: 20 
     time_between_tokens: 0.5 
-    capacity: 2      
+    process_smallest_prefill: true
+    capacity: 2 
 
 
 traces:
   - name: chat
     trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/sharegpt_8k_filtered_stats_llama2_tokenizer.csv"
     max_seq_len: 8192
-    num_requests: 20
-    start_qps: 20
+    num_requests: 4096 # 4096 
+    start_qps: 2
   # - name: arxiv
   #   trace_file: "/home/ab73456/sarathi-serve/data/processed_traces/arxiv_summarization_filtered_stats_llama2_tokenizer.csv"
   #   max_seq_len: 16384

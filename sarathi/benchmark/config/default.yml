@@ -6,7 +6,7 @@ write_chrome_trace: true
 write_metrics: true
 enable_profiling: false
 gpu_memory_utilization: 0.85
-time_limit: 1800 # seconds
+time_limit: 3600 # seconds
 replica_resource_mapping: ""
 
 cluster:
@@ -97,6 +97,7 @@ last_minute_scheduler:
   token_budget: 512
   offset: 2
   time_between_tokens: 0.5
+  process_smallest_prefill: false
 
 metrics_store:
   wandb_project: ""

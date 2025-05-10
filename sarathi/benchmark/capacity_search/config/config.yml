@@ -27,6 +27,7 @@ schedulers:
     token_budget: 512
     offset: 2
     time_between_tokens: 0.5
+    process_smallest_prefill: true
 
 traces:
   - name: chat

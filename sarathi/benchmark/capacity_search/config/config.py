@@ -75,6 +75,7 @@ class SchedulerConfig:
     token_budget : Optional[int] = None
     offset: Optional[float] = None
     time_between_tokens: Optional[float] = None
+    process_smallest_prefill: Optional[bool] = None
     capacity: Optional[float] = None       
 
     def get_key(self):
@@ -89,6 +90,7 @@ class SchedulerConfig:
                 f"_tb{self.token_budget}"
                 f"_off{self.offset:.1f}"
                 f"_tbt{self.time_between_tokens:.1f}"
+                f"_ps{self.process_smallest_prefill}"
             )
 
         return key
@@ -118,12 +120,14 @@ class SchedulerConfig:
             assert self.token_budget is not None
             assert self.offset is not None
             assert self.time_between_tokens is not None
+            assert self.process_smallest_prefill is not None
             return {
                 "replica_scheduler_provider": "last_minute",
                 "replica_scheduler_max_batch_size": self.batch_size,
                 "last_minute_scheduler_token_budget": self.token_budget,
                 "last_minute_scheduler_offset": self.offset,
                 "last_minute_scheduler_time_between_tokens": self.time_between_tokens,
+                "last_minute_scheduler_process_smallest_prefill": self.process_smallest_prefill,
             }
         else:
             raise ValueError(f"Unknown scheduler: {self.scheduler}")

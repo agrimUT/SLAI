@@ -98,6 +98,7 @@ class BenchmarkRunner:
             token_budget=self._config.last_minute_scheduler_token_budget,
             offset=self._config.last_minute_scheduler_offset,
             time_between_tokens=self._config.last_minute_scheduler_time_between_tokens,
+            process_smallest_prefill=self._config.last_minute_scheduler_process_smallest_prefill,
             # wandb config
             write_metrics=self._config.write_metrics,
             enable_chrome_trace=self._config.write_chrome_trace,

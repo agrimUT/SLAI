@@ -12,7 +12,9 @@ class SchedulerOutputs:
         preempted_seq_ids: List[int],
         scheduled_seq_metadata_list: List[SequenceScheduleMetadata],
         num_time_critical_decodes: int = 0,
-        num_noncritical_decodes: int = 0 
+        num_noncritical_decodes: int = 0, 
+        preempted_seq_prefill: int = 0,
+        preempted_seq_decode: int = 0,
     ) -> None:
         self.id = id
         self.ignored_seq_ids = ignored_seq_ids
@@ -20,6 +22,8 @@ class SchedulerOutputs:
         self.scheduled_seq_metadata_list = scheduled_seq_metadata_list
         self.num_time_critical_decodes = num_time_critical_decodes
         self.num_noncritical_decodes = num_noncritical_decodes
+        self.preempted_seq_prefill = preempted_seq_prefill
+        self.preempted_seq_decode = preempted_seq_decode
         self.prompt_chunk_lens = [
             metadata.num_prompt_tokens for metadata in scheduled_seq_metadata_list
         ]

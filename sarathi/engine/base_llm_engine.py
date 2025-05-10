@@ -22,6 +22,9 @@ from sarathi.logger import init_logger
 from sarathi.metrics.constants import CpuOperationMetrics
 from sarathi.metrics.cpu_timer import CpuTimer
 from sarathi.metrics.metrics_store import MetricsStore
+from sarathi.metrics.constants import (
+    CompletionMetricsTimeSeries
+)
 from sarathi.transformers_utils.tokenizer import get_tokenizer
 from sarathi.utils import Counter, get_ip, get_random_port, unset_cuda_visible_devices
 
@@ -381,6 +384,15 @@ class BaseLLMEngine:
         ignored_seqs, seq_metadata_list = self.seq_manager.on_schedule(
             scheduler_outputs
         )
+        if hasattr(self.scheduler, "get_queue_sizes"):
+            prefill_q, decode_q = self.scheduler.get_queue_sizes()
+            now = time.perf_counter()          # same clock the rest of the engine uses
+            self.metrics_store.completion_metrics_time_series[
+                CompletionMetricsTimeSeries.WAITING_PREFILL_QUEUE_SIZE
+            ].put(now, prefill_q)
+            self.metrics_store.completion_metrics_time_series[
+                CompletionMetricsTimeSeries.WAITING_DECODE_QUEUE_SIZE
+            ].put(now, decode_q)
 
         sampler_outputs = self._run_workers(
             "execute_model",

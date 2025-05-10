@@ -154,7 +154,7 @@ def main() -> None:
         if cap is None:
             continue   # skip schedulers without declared capacity
 
-        qps_grid = np.linspace(0.1 * cap, cap, 1).round(2).tolist()
+        qps_grid = np.linspace(0.1 * cap, cap, 10).round(2).tolist()
         job_hash = _get_hash(job.get_key())
         logger.info(f"[{job_hash}] {job.get_human_readable_name()}  "
                     f"capacity={cap}  QPS grid={qps_grid}")
@@ -183,6 +183,8 @@ def main() -> None:
             tcdt_csv = _metric_csv(run_dir, "batch_num_time_critical_decode_tokens") # TCDT
             ncdt_csv = _metric_csv(run_dir, "batch_num_noncritical_decode_tokens") # NCDT
             pft_csv = _metric_csv(run_dir, "batch_num_prefill_tokens") # PFT
+            npp_csv = _metric_csv(run_dir, "batch_num_preempted_seq_prefill")
+            npd_csv = _metric_csv(run_dir, "batch_num_preempted_seq_decode")
             sequence_csv = _get_seq_metric_csv(run_dir, "sequence_metrics") # SL
             # p99 decode‐token execution+preemption time
             p99_tbt = get_quantile(tbt_csv, "decode_token_execution_plus_preemption_time", 0.99) 
@@ -193,7 +195,10 @@ def main() -> None:
             mean_noncritical_decode_tokens = get_mean(ncdt_csv, "batch_num_noncritical_decode_tokens")
             mean_timecritical_decode_tokens = get_mean(tcdt_csv, "batch_num_time_critical_decode_tokens")
             mean_prefill_tokens = get_mean(pft_csv, "batch_num_prefill_tokens")
+            mean_preempted_prefill = get_mean(npp_csv, "batch_num_preempted_seq_prefill")
+            mean_preempted_decode = get_mean(npd_csv, "batch_num_preempted_seq_decode")
             mean_pd_ratio, std_pd_ratio = get_mean_and_std(sequence_csv, "request_pd_ratio")
+            mean_scheduling_delay, std_scheduling_delay = get_mean_and_std(sequence_csv, "request_scheduling_delay")
 
             rows.append(dict(
                 scheduler=job.scheduler_config.name,
@@ -206,7 +211,11 @@ def main() -> None:
                 mean_prefill_tokens=mean_prefill_tokens,
                 mean_pd_ratio=mean_pd_ratio,
                 std_pd_ratio=std_pd_ratio,
+                mean_preempted_prefill=mean_preempted_prefill,
+                mean_preempted_decode=mean_preempted_decode,
                 **{f"sched_delay_{q_label}_seconds": sched_delay_median},
+                mean_scheduling_delay=mean_scheduling_delay,
+                std_scheduling_delay=std_scheduling_delay,
             ))
 
         # write one CSV per job

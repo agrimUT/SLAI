@@ -304,6 +304,13 @@ class MetricsStore(metaclass=Singleton):
             self._get_seq_id(seq.seq_id), int(seq.state.is_ignore_finished)
         )
 
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.DECODE_REQUEST_COMPLETIONS
+        ].put(
+            seq.state.completed_at,          # x-axis = wall-clock time
+            seq.state.num_output_tokens      # y-axis = #decode tokens the job produced
+        )
+
         if seq.state.is_ignore_finished:
             # do not log metrics for ignored requests, they can skew the results
             return
@@ -536,10 +543,20 @@ class MetricsStore(metaclass=Singleton):
         self.batch_metrics_count_distribution[
             BatchMetricsCountDistribution.BATCH_NUM_NONCRITICAL_DECODE_TOKENS
         ].put_pair(scheduler_outputs.id, scheduler_outputs.num_noncritical_decodes)
+
+        self.batch_metrics_count_distribution[BatchMetricsCountDistribution.BATCH_NUM_PREEMPTED_SEQ_PREFILL].put_pair(
+            scheduler_outputs.id,
+            scheduler_outputs.preempted_seq_prefill,
+        )
+        self.batch_metrics_count_distribution[BatchMetricsCountDistribution.BATCH_NUM_PREEMPTED_SEQ_DECODE].put_pair(
+            scheduler_outputs.id,
+            scheduler_outputs.preempted_seq_decode,
+        )
         # add the only time distribution we have for batch
         self.batch_metrics_time_distribution[
             BatchMetricsTimeDistribution.BATCH_EXECUTION_TIME
         ].put_pair(scheduler_outputs.id, execution_time)
+
 
     def _to_chrome_trace_dict(
         self,
@@ -830,14 +847,46 @@ class MetricsStore(metaclass=Singleton):
             CompletionMetricsTimeSeries.REQUEST_ARRIVAL
         ].min_x
 
-        for dataseries in self.completion_metrics_time_series.values():
-            # subtract the first request arrival time from all the completion times
-            dataseries.plot_step(
-                base_plot_path,
-                f"{dataseries.y_name}_time_series",
-                COUNT_STR,
-                start_time=first_request_arrival_time,
-            )
+        for metric_key, dataseries in self.completion_metrics_time_series.items():
+            # subtract the first request-arrival time from every curve
+            if metric_key in (
+                CompletionMetricsTimeSeries.DECODE_REQUEST_COMPLETIONS,
+                CompletionMetricsTimeSeries.WAITING_PREFILL_QUEUE_SIZE,
+                CompletionMetricsTimeSeries.WAITING_DECODE_QUEUE_SIZE,
+            ):
+                # raw, non-cumulative line
+                dataseries.plot_step(
+                    base_plot_path,
+                    f"{metric_key.value}_time_series_raw",
+                    COUNT_STR,
+                    start_time=first_request_arrival_time,
+                    y_cumsum=False,
+                )
+            elif metric_key == CompletionMetricsTimeSeries.PREFILL_COMPLETIONS:
+                # raw, non-cumulative line
+                dataseries.plot_step(
+                    base_plot_path,
+                    f"{metric_key.value}_time_series_raw",
+                    COUNT_STR,
+                    start_time=first_request_arrival_time,
+                    y_cumsum=False,
+                )
+                # cumulative view (legacy behaviour)
+                dataseries.plot_step(
+                    base_plot_path,
+                    f"{dataseries.y_name}_time_series",
+                    COUNT_STR,
+                    start_time=first_request_arrival_time,
+                    y_cumsum=True,          # default; may omit
+                )
+            else:
+                dataseries.plot_step(
+                    base_plot_path,
+                    f"{dataseries.y_name}_time_series",
+                    COUNT_STR,
+                    start_time=first_request_arrival_time,
+                    y_cumsum=True,          # default; may omit
+                )
 
     def _store_chrome_trace(self):
         if not self._enable_chrome_trace:

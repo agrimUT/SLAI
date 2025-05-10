@@ -62,6 +62,7 @@ class SequenceMetricsTimeDistributions(enum.Enum):
     DECODE_TIME_EXECUTION_PLUS_PREEMPTION_NORMALIZED = (
         "decode_time_execution_plus_preemption_normalized"
     )
+    REQUEST_ARRIVAL_TIME = "request_arrival_time"
 
 
 class TokenMetricsTimeDistribution(enum.Enum):
@@ -94,6 +95,8 @@ class BatchMetricsCountDistribution(enum.Enum):
     BATCH_SIZE = "batch_size"
     BATCH_NUM_TIME_CRITICAL_DECODE_TOKENS = "batch_num_time_critical_decode_tokens"
     BATCH_NUM_NONCRITICAL_DECODE_TOKENS = "batch_num_noncritical_decode_tokens"
+    BATCH_NUM_PREEMPTED_SEQ_PREFILL = "batch_num_preempted_seq_prefill"
+    BATCH_NUM_PREEMPTED_SEQ_DECODE = "batch_num_preempted_seq_decode"
 
 
 class BatchMetricsTimeDistribution(enum.Enum):
@@ -106,3 +109,8 @@ class CompletionMetricsTimeSeries(enum.Enum):
     REQUEST_COMPLETION = "request_completion"
     PREFILL_COMPLETIONS = "prefill_completion"
     DECODE_COMPLETIONS = "decode_completion"
+    DECODE_REQUEST_COMPLETIONS = "decode_request_completion"
+    WAITING_PREFILL_QUEUE_SIZE = "waiting_prefill_queue_size"
+    WAITING_DECODE_QUEUE_SIZE  = "waiting_decode_queue_size"
+
+

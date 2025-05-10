@@ -395,11 +395,13 @@ class LastMinuteSchedulerConfig(BaseSchedulerConfig):
         token_budget: int,
         offset : float,
         time_between_tokens: float,
+        process_smallest_prefill: bool, 
     ) -> None:
         super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
         self.token_budget = token_budget
         self.offset = offset
         self.time_between_tokens = time_between_tokens
+        self.process_smallest_prefill = process_smallest_prefill
 
     @property
     def max_num_batched_tokens(self):
