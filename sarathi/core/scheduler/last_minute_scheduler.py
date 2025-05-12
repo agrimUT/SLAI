@@ -148,7 +148,7 @@ class LastMinuteScheduler(BaseScheduler):
                 break
         if self.process_smallest_prefill: 
             # processing paused prefills with smallest number of tokens left in the prefill phase
-            self.paused_prefills.sort(key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
+            self.paused_prefills = sorted(self.paused_prefills, key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
         # process the paused prefill jobs
         while self.paused_prefills and num_batched_tokens < self.token_budget:
             seq = self.paused_prefills.pop(0) 
@@ -172,7 +172,7 @@ class LastMinuteScheduler(BaseScheduler):
             k = 0
             while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
                 k += 1
-            self.waiting[:k].sort(key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
+            self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]
