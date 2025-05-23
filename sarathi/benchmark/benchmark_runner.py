@@ -132,6 +132,8 @@ class BenchmarkRunner:
             "prompt_token_ids": prompt_token_ids,
             "sampling_params": sampling_params,
             "arrival_time": first_request_time + request.arrived_at,
+            "time_between_tokens": request.time_between_tokens,
+            "is_strict_tbt": request.is_strict_tbt,
         }
 
     def warmup(self) -> None:

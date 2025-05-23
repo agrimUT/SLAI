@@ -260,6 +260,9 @@ class BenchmarkConfig:
     qps: float
     time_limit: int
     job_config: JobConfig
+    hetero_tbt_prob:   float = 0.0
+    hetero_strict_tbt: float = 0.15
+    hetero_relaxed_tbt:float = 0.15
 
     def to_config_dict(self):
         if self.wandb_project:
@@ -281,6 +284,9 @@ class BenchmarkConfig:
             "metrics_store_enable_cpu_op_level_metrics": False,
             "metrics_store_keep_individual_batch_metrics": False,
             "write_chrome_trace": False,
+            "hetero_tbt_prob":   self.hetero_tbt_prob,
+            "hetero_strict_tbt": self.hetero_strict_tbt,
+            "hetero_relaxed_tbt":self.hetero_relaxed_tbt,
             **wandb_args,
         }
 

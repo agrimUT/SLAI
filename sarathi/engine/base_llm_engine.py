@@ -309,6 +309,8 @@ class BaseLLMEngine:
         sampling_params: SamplingParams,
         prompt_token_ids: Optional[List[int]] = None,
         arrival_time: Optional[float] = None,
+        time_between_tokens: Optional[float] = None,
+        is_strict_tbt: Optional[bool] = None,
     ) -> None:
         """Add a request to the engine's request pool.
 
@@ -345,6 +347,8 @@ class BaseLLMEngine:
             eos_token_id,
             arrival_time,
             sampling_params,
+            time_between_tokens = time_between_tokens,
+            is_strict_tbt=is_strict_tbt,
         )
         # Add the sequence to the scheduler.
         self.seq_manager.add_seq(seq)

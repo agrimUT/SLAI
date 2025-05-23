@@ -57,6 +57,10 @@ def get_args() -> argparse.Namespace:
                    help="Quantile for request_scheduling_delay (default 0.50).")
     p.add_argument("--time-limit", type=int, default=30,
                    help="Minutes per benchmark run (default 30).")
+    p.add_argument('--hetero_tbt_prob', type=float, default=0.0,
+               help='Probability a request gets STRICT TBT')
+    p.add_argument('--hetero_strict_tbt', type=float, default=0.1)
+    p.add_argument('--hetero_relaxed_tbt', type=float, default=0.5)
     return p.parse_args()
 
 

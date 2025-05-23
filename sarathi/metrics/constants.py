@@ -69,12 +69,19 @@ class TokenMetricsTimeDistribution(enum.Enum):
     DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME = (
         "decode_token_execution_plus_preemption_time"
     )
+    DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME_STRICT = (
+        "decode_token_execution_plus_preemption_time_strict"
+    )
+    DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME_RELAXED = (
+        "decode_token_execution_plus_preemption_time_relaxed"
+    )
 
 
 class TokenMetricsTimeList(enum.Enum):
     DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME_LIST = (
         "decode_token_execution_plus_preemption_time_list"
     )
+    
 
 
 class SequenceMetricsHistogram(enum.Enum):

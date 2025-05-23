@@ -35,6 +35,9 @@ class ConfigParser:
 
     def __init__(self, config_file=DEFAULT_CONFIG_FILE):
         self._parser = argparse.ArgumentParser()
+        self._parser.add_argument("--hetero_tbt_prob",   type=float, default=0.0)
+        self._parser.add_argument("--hetero_strict_tbt", type=float, default=0.15)
+        self._parser.add_argument("--hetero_relaxed_tbt",type=float, default=0.15)
         self._args = None
         self._load_yaml(config_file)
         self._parse_args()

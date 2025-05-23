@@ -45,7 +45,13 @@ def get_args():
     parser.add_argument("--wandb-project", type=str, default=None)
     parser.add_argument("--wandb-sweep-name", type=str, default=None)
     parser.add_argument("--wandb-sweep-id", type=str, default=None)
-
+    parser.add_argument("--hetero_tbt_prob", type=float, default=0.0)
+    parser.add_argument("--hetero_strict_tbt", type=float, default=0.15)
+    parser.add_argument("--hetero_relaxed_tbt", type=float, default=0.15)
+    parser.add_argument('--prefill-time-threshold', type=float, default=2.0,
+                   help='Numeric SLO (seconds) for prefill_e2e_time')
+    parser.add_argument('--prefill-time-quantile',  type=float, default=0.50,
+                   help='Quantile 0–1 or -1 for mean')
     args = parser.parse_args()
 
     if args.wandb_project:

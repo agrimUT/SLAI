@@ -96,7 +96,7 @@ class SarathiScheduler(BaseScheduler):
         scheduled_seq_metadata_list: List[SequenceScheduleMetadata] = []
 
         num_batched_tokens: int = 0
-
+        critical_decodes: int = 0 
         ######################################################################
         # Phase 1: Add existing running sequence groups to the batch.
         # There are two cases:
@@ -128,7 +128,7 @@ class SarathiScheduler(BaseScheduler):
             if not seq.prompt_processing_finished:
                 running_prefills.append(seq)
                 continue
-
+            critical_decodes += 1
             while not self.block_manager.can_append_slot():
                 if self.running:
                     # Preempt the lowest-priority sequence groups.
@@ -140,6 +140,7 @@ class SarathiScheduler(BaseScheduler):
                     # Preempt the current sequence group.
                     self._preempt(seq)
                     preempted_seq_ids.append(seq.seq_id)
+                    critical_decodes -= 1
                     break
             else:
                 # Append new slots to the sequence group.
@@ -234,4 +235,5 @@ class SarathiScheduler(BaseScheduler):
             ignored_seq_ids=ignored_seq_ids,
             preempted_seq_ids=preempted_seq_ids,
             scheduled_seq_metadata_list=scheduled_seq_metadata_list,
+            num_time_critical_decodes= critical_decodes,
         )

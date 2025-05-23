@@ -99,5 +99,19 @@ class SyntheticRequestGenerator(BaseRequestGenerator):
                 if request.arrived_at
                 < self._config.synthetic_request_generator_duration
             ]
-
+        prob   = getattr(self._config, "hetero_tbt_prob",   0.0)
+        strict = getattr(self._config, "hetero_strict_tbt", 0.15)
+        relaxed= getattr(self._config, "hetero_relaxed_tbt",0.15)
+        hmg = getattr(self._config, "tbt-slo-value", 0.2)
+        if prob > 0:                          
+            import numpy as np
+            rng = np.random.default_rng(self._seed)
+            for req in requests:
+                is_strict = rng.random() < prob
+                req._time_between_tokens = strict if is_strict else relaxed
+                req._is_strict_tbt       = is_strict 
+        else: 
+            for req in requests:
+                req._time_between_tokens = hmg
+                req._is_strict_tbt       = False
         return requests

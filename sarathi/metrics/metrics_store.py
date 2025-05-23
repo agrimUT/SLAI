@@ -427,9 +427,20 @@ class MetricsStore(metaclass=Singleton):
 
         self.token_metrics_time_distribution[
             TokenMetricsTimeDistribution.DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME
-        ].put(
-            seq.state.last_token_generation_time,
-        )
+        ].put(seq.state.last_token_generation_time)
+
+        # and into strict / relaxed buckets if the flag is known
+        if seq.is_strict_tbt is not None:
+            bucket = (
+                TokenMetricsTimeDistribution
+                .DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME_STRICT
+                if seq.is_strict_tbt
+                else TokenMetricsTimeDistribution
+                .DECODE_TOKEN_EXECUTION_PLUS_PREEMPTION_TIME_RELAXED
+            )
+            self.token_metrics_time_distribution[bucket].put(
+                seq.state.last_token_generation_time
+            )
 
         if self._keep_individual_batch_metrics:
             self.completion_metrics_time_series[
