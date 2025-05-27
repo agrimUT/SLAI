@@ -37,6 +37,7 @@ class LastMinuteScheduler(BaseScheduler):
         self.paused_prefills: List[Sequence] = [] # Store Sequence obj, it represents the set of sequences that are in prefill phase and have already been scheduled at least once
         self.process_smallest_prefill = self.scheduler_config.process_smallest_prefill # if true then process the smallest prefill first
         self.prefill_waiting = 0 
+        self._active_seq_ids: set[int] = set()
     def get_queue_sizes(self) -> tuple[int, int]:
         """Return (#prefill_waiting, #decode_waiting)."""
         return (self.prefill_waiting + len(self.paused_prefills)), (len(self.decode_queue))
@@ -44,6 +45,10 @@ class LastMinuteScheduler(BaseScheduler):
     def get_block_space_manager_class(self):
         return SarathiBlockSpaceManager
 
+    @property
+    def num_active_seqs(self) -> int:
+        return len(self._active_seq_ids)
+    
     def _get_seq_next_num_prefill_tokens(
         self, seq: Sequence, num_batched_tokens: int
     ) -> int:
@@ -92,7 +97,6 @@ class LastMinuteScheduler(BaseScheduler):
         #     self.next_batch_run_time_for_decode = self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
         
         for seq in self.running:
-            # eithe
             if not seq.prompt_processing_finished:
                 if seq not in self.paused_prefills:
                      self.paused_prefills.append(seq)
@@ -105,6 +109,11 @@ class LastMinuteScheduler(BaseScheduler):
                 seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
 
+    def on_step_completed(self) -> None:           # called from BaseLLMEngine
+        super().on_step_completed()                # keep original logic
+        # remove every seq-id that no longer owns GPU blocks
+        still_allocated = set(self.block_manager.block_tables.keys())
+        self._active_seq_ids.intersection_update(still_allocated)
     
     def _schedule(self) -> SchedulerOutputs:
         # Fix the current time.
@@ -137,17 +146,21 @@ class LastMinuteScheduler(BaseScheduler):
                         # Preempt the paused prefill sequence that too whichever arrived last 
                         victim_seq = self.paused_prefills.pop(-1)
                         self._preempt(victim_seq)
+                        self._active_seq_ids.discard(victim_seq.seq_id)
                         preempted_seq_ids.append(victim_seq.seq_id)
                         preempted_seq_prefill += 1
                     else:
                         critical_decodes -= 1
                         self._preempt(seq)
+                        self._active_seq_ids.discard(seq.seq_id)
                         preempted_seq_ids.append(seq.seq_id)
                         preempted_seq_decode += 1
                         break 
                 else:
                     # Append new slots to the sequence group.
                     self._append_slot(seq)
+                    if seq.seq_id not in self._active_seq_ids:  
+                        self._active_seq_ids.add(seq.seq_id)
                     running.append(seq)
                     num_batched_tokens += 1
                     scheduled_seq_metadata_list.append(
@@ -176,35 +189,7 @@ class LastMinuteScheduler(BaseScheduler):
                 )
             )
             running.append(seq) 
-        # now go through the remaining decode queue and add them to batch if there is space 
-        while self.decode_queue and num_batched_tokens < self.token_budget:
-            seq = heapq.heappop(self.decode_queue)[2]
-            if now < seq.last_schedulable_time:
-                noncritical_decodes += 1
-            if not seq.is_paused():
-                running.append(seq)
-                continue
-            while not self.block_manager.can_append_slot():
-                if self.paused_prefills:
-                    # Preempt the lowest-priority sequence groups.
-                    victim_seq = self.paused_prefills.pop(-1)
-                    self._preempt(victim_seq)
-                    preempted_seq_ids.append(victim_seq.seq_id)
-                    preempted_seq_prefill += 1
-                else:
-                    noncritical_decodes -= 1
-                    self._preempt(seq)
-                    preempted_seq_ids.append(seq.seq_id)
-                    preempted_seq_decode += 1
-                    break 
-            else:
-                # Append new slots to the sequence group.
-                self._append_slot(seq)
-                running.append(seq)
-                num_batched_tokens += 1
-                scheduled_seq_metadata_list.append(
-                    SequenceScheduleMetadata.from_sequence(seq)
-                )
+        
         
         
         if self.process_smallest_prefill:
@@ -229,7 +214,7 @@ class LastMinuteScheduler(BaseScheduler):
 
             # The total number of sequences in the RUNNING state should not
             # exceed the maximum number of sequences.
-            if len(running) >= self.scheduler_config.max_num_seqs:
+            if self.num_active_seqs >= self.scheduler_config.max_num_seqs:
                 break
 
             # check if we can fit the prefill in the batch
@@ -245,6 +230,7 @@ class LastMinuteScheduler(BaseScheduler):
             seq = self.waiting.pop(0)
             prefill_waiting -= 1
             self._allocate(seq)
+            self._active_seq_ids.add(seq.seq_id)
             num_batched_tokens += next_num_prefill_tokens
             scheduled_seq_metadata_list.append(
                 SequenceScheduleMetadata.from_sequence(
@@ -253,11 +239,42 @@ class LastMinuteScheduler(BaseScheduler):
             )
             running.append(seq)
         
-            
-        assert len(running) <= self.scheduler_config.max_num_seqs, (
-            f"Batch size {len(running)} exceeds cap "
-            f"{self.scheduler_config.max_num_seqs}"
-        )
+        # now go through the remaining decode queue and add them to batch if there is space 
+        while self.decode_queue and num_batched_tokens < self.token_budget:
+            seq = heapq.heappop(self.decode_queue)[2]
+            if now < seq.last_schedulable_time:
+                noncritical_decodes += 1
+            if not seq.is_paused():
+                running.append(seq)
+                continue
+            while not self.block_manager.can_append_slot():
+                if self.paused_prefills:
+                    # Preempt the lowest-priority sequence groups.
+                    victim_seq = self.paused_prefills.pop(-1)
+                    self._preempt(victim_seq)
+                    self._active_seq_ids.discard(victim_seq.seq_id)
+                    preempted_seq_ids.append(victim_seq.seq_id)
+                    preempted_seq_prefill += 1
+                else:
+                    noncritical_decodes -= 1
+                    self._preempt(seq)
+                    self._active_seq_ids.discard(seq.seq_id)
+                    preempted_seq_ids.append(seq.seq_id)
+                    preempted_seq_decode += 1
+                    break 
+            else:
+                # Append new slots to the sequence group.
+                self._append_slot(seq)
+                if seq.seq_id not in self._active_seq_ids:  
+                    self._active_seq_ids.add(seq.seq_id)
+                running.append(seq)
+                num_batched_tokens += 1
+                scheduled_seq_metadata_list.append(
+                    SequenceScheduleMetadata.from_sequence(seq)
+                )
+
+        assert self.num_active_seqs <= self.scheduler_config.max_num_seqs, \
+            f"active={self.num_active_seqs} exceeds cap {self.scheduler_config.max_num_seqs}"
         self.running = running
         self.prefill_waiting = prefill_waiting
         return SchedulerOutputs(

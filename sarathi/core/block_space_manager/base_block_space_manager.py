@@ -81,6 +81,9 @@ class BaseBlockSpaceManager(ABC):
         # Use watermark to avoid frequent cache eviction.
         return num_free_gpu_blocks - num_required_blocks >= self.watermark_blocks
 
+    def get_num_used_gpu_blocks(self) -> int:
+        return self.num_total_gpu_blocks - self.gpu_allocator.get_num_free_blocks()
+
     def allocate(self, seq: Sequence) -> None:
         # Allocate new physical token blocks that will store the prompt tokens.
         block_table: BlockTable = []

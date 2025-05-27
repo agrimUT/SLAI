@@ -62,7 +62,6 @@ class SequenceMetricsTimeDistributions(enum.Enum):
     DECODE_TIME_EXECUTION_PLUS_PREEMPTION_NORMALIZED = (
         "decode_time_execution_plus_preemption_normalized"
     )
-    REQUEST_ARRIVAL_TIME = "request_arrival_time"
 
 
 class TokenMetricsTimeDistribution(enum.Enum):
@@ -93,6 +92,7 @@ class SequenceMetricsHistogram(enum.Enum):
     REQUEST_NUM_RESTARTS = "request_num_restarts"
     REQUEST_NUM_PAUSES = "request_num_pauses"
     REQUEST_NUM_IGNORED = "request_num_ignored"
+    REQUEST_TIME_BETWEEN_TOKENS = "request_time_between_tokens"  
 
 
 class BatchMetricsCountDistribution(enum.Enum):
@@ -104,6 +104,7 @@ class BatchMetricsCountDistribution(enum.Enum):
     BATCH_NUM_NONCRITICAL_DECODE_TOKENS = "batch_num_noncritical_decode_tokens"
     BATCH_NUM_PREEMPTED_SEQ_PREFILL = "batch_num_preempted_seq_prefill"
     BATCH_NUM_PREEMPTED_SEQ_DECODE = "batch_num_preempted_seq_decode"
+    BATCH_NUM_GPU_BLOCKS_USED = "batch_num_gpu_blocks_used"
 
 
 class BatchMetricsTimeDistribution(enum.Enum):
@@ -119,5 +120,7 @@ class CompletionMetricsTimeSeries(enum.Enum):
     DECODE_REQUEST_COMPLETIONS = "decode_request_completion"
     WAITING_PREFILL_QUEUE_SIZE = "waiting_prefill_queue_size"
     WAITING_DECODE_QUEUE_SIZE  = "waiting_decode_queue_size"
+    GPU_BLOCK_UTIL_PERCENT = "gpu_block_util_percent" 
+    GPU_SM_UTIL_PERCENT    = "gpu_sm_util_percent"
 
 

@@ -338,6 +338,9 @@ class MetricsStore(metaclass=Singleton):
         self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_NUM_PAUSES].put(
             self._get_seq_id(seq.seq_id), seq.state.num_pauses
         )
+        self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_TIME_BETWEEN_TOKENS].put(
+            self._get_seq_id(seq.seq_id), seq.time_between_tokens,          # <── property added in Request
+        )
 
         # then log all the time distributions
         self.seq_metrics_time_distributions[
@@ -568,6 +571,25 @@ class MetricsStore(metaclass=Singleton):
             BatchMetricsTimeDistribution.BATCH_EXECUTION_TIME
         ].put_pair(scheduler_outputs.id, execution_time)
 
+    def record_block_util(self, *, batch_id: int,
+                      num_used: int, num_total: int,
+                      timestamp: float):
+        util_pct = 100.0 * num_used / num_total
+
+        # per-batch histogram / CDF
+        self.batch_metrics_count_distribution[
+            BatchMetricsCountDistribution.BATCH_NUM_GPU_BLOCKS_USED
+        ].put_pair(batch_id, num_used)
+
+        # real-time series
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.GPU_BLOCK_UTIL_PERCENT
+        ].put(timestamp, util_pct)
+
+    def record_sm_util(self, *, timestamp: float, sm_percent: float):
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.GPU_SM_UTIL_PERCENT
+        ].put(timestamp, sm_percent)
 
     def _to_chrome_trace_dict(
         self,
@@ -864,6 +886,8 @@ class MetricsStore(metaclass=Singleton):
                 CompletionMetricsTimeSeries.DECODE_REQUEST_COMPLETIONS,
                 CompletionMetricsTimeSeries.WAITING_PREFILL_QUEUE_SIZE,
                 CompletionMetricsTimeSeries.WAITING_DECODE_QUEUE_SIZE,
+                CompletionMetricsTimeSeries.GPU_BLOCK_UTIL_PERCENT,
+                CompletionMetricsTimeSeries.GPU_SM_UTIL_PERCENT,
             ):
                 # raw, non-cumulative line
                 dataseries.plot_step(

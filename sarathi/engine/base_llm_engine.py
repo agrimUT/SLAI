@@ -27,6 +27,8 @@ from sarathi.metrics.constants import (
 )
 from sarathi.transformers_utils.tokenizer import get_tokenizer
 from sarathi.utils import Counter, get_ip, get_random_port, unset_cuda_visible_devices
+from pynvml import (nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex,nvmlDeviceGetUtilizationRates)
+import torch 
 
 logger = init_logger(__name__)
 
@@ -105,6 +107,14 @@ class BaseLLMEngine:
         # Initialize the cluster.
         initialize_cluster()
 
+        nvmlInit()
+        self._nvml_handles = [
+            nvmlDeviceGetHandleByIndex(i)
+            for i in range(torch.cuda.device_count())
+        ]
+        import atexit
+        atexit.register(nvmlShutdown)
+
         # Create the parallel GPU workers.
         self._init_workers_ray()
 
@@ -125,6 +135,9 @@ class BaseLLMEngine:
         self._process_model_outputs_timer = CpuTimer(
             CpuOperationMetrics.PROCESS_MODEL_OUTPUTS
         )
+
+        logger.info("Scheduler initialised, block_manager has %d total blocks",self.scheduler.block_manager.num_total_gpu_blocks)
+        assert self.scheduler.block_manager.num_total_gpu_blocks > 0
 
     def _validate_parallel_config(self) -> None:
         assert self.parallel_config.pipeline_parallel_size == 1
@@ -291,6 +304,17 @@ class BaseLLMEngine:
                 batch_start_time=start_time,
                 batch_end_time=end_time,
             )
+        bm_total = self.scheduler.block_manager.num_total_gpu_blocks
+        bm_used  = self.scheduler.block_manager.get_num_used_gpu_blocks()
+        self.metrics_store.record_block_util(
+            batch_id=scheduler_outputs.id,
+            num_used=bm_used,
+            num_total=bm_total,
+            timestamp=end_time,           # ← pass the batch-end wall-clock time
+        )
+
+        sm_pct = sum(nvmlDeviceGetUtilizationRates(h).gpu for h in self._nvml_handles) / len(self._nvml_handles)
+        self.metrics_store.record_sm_util(timestamp=end_time, sm_percent=sm_pct)
 
         self.metrics_store.on_batch_end(
             seq_metadata_list=seq_metadata_list,
