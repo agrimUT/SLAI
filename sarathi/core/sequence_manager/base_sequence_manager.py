@@ -24,6 +24,10 @@ class BaseSequenceManager(ABC):
         assert seq.seq_id not in self.seq_map
         self.seq_map[seq.seq_id] = seq
 
+    def get_seq(self, seq_id: int) -> Optional[Sequence]:
+        """Get a sequence by its ID."""
+        return self.seq_map.get(seq_id)
+    
     def _free_seq(self, seq_id: int) -> None:
         assert seq_id in self.seq_map
         del self.seq_map[seq_id]

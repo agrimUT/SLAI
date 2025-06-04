@@ -29,6 +29,11 @@ from sarathi.model_executor.parallel_utils.parallel_state import (
 )
 from sarathi.utils.threading_utils import synchronized
 from sarathi.worker.cache_engine import CacheEngine
+from pynvml import (
+    nvmlInit, nvmlShutdown,
+    nvmlDeviceGetHandleByIndex, nvmlDeviceGetUtilizationRates,
+)
+import atexit
 
 logger = init_logger(__name__)
 
@@ -74,6 +79,9 @@ class BaseWorker:
 
         self._verify_parallel_config()
         self.metrics_store = MetricsStore(metrics_config)
+        nvmlInit()
+        self._nvml_handle = nvmlDeviceGetHandleByIndex(local_rank)
+        atexit.register(nvmlShutdown)
 
     def _verify_parallel_config(self) -> None:
         assert self.parallel_config.pipeline_parallel_size == 1
@@ -187,6 +195,10 @@ class BaseWorker:
         )
 
         return sampler_outputs
+
+    def get_sm_util(self) -> float:
+        """Return current SM utilisation (%) for this worker’s GPU."""
+        return nvmlDeviceGetUtilizationRates(self._nvml_handle).gpu
 
     @synchronized
     def get_metrics_store(self) -> MetricsStore:

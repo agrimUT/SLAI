@@ -27,7 +27,7 @@ class LastMinuteScheduler(BaseScheduler):
 
         self.prompt_limit = self.scheduler_config.max_model_len
         self.token_budget = self.scheduler_config.token_budget
-        self.offset = self.scheduler_config.offset * 1
+        self.offset = self.scheduler_config.offset
         self.next_batch_run_time_for_decode = float("inf")
         self.minimum_time_between_tokens = float("inf")
         self.last_batch_start_time = 0
@@ -38,6 +38,8 @@ class LastMinuteScheduler(BaseScheduler):
         self.process_smallest_prefill = self.scheduler_config.process_smallest_prefill # if true then process the smallest prefill first
         self.prefill_waiting = 0 
         self._active_seq_ids: set[int] = set()
+        self._mean_batch_dur   = 0.0   
+        self._num_batches_seen = 0
     def get_queue_sizes(self) -> tuple[int, int]:
         """Return (#prefill_waiting, #decode_waiting)."""
         return (self.prefill_waiting + len(self.paused_prefills)), (len(self.decode_queue))
@@ -69,6 +71,9 @@ class LastMinuteScheduler(BaseScheduler):
         # Update the last batch start and end time
         self.last_batch_start_time = batch_start_time
         self.last_batch_end_time = batch_end_time
+        dur = batch_end_time - batch_start_time
+        self._num_batches_seen += 1
+        self._mean_batch_dur += (dur - self._mean_batch_dur) / self._num_batches_seen
         
     def _tbt_for(self, seq: Sequence) -> float:
         """Return the time-between-tokens for this sequence, falling back to
@@ -80,22 +85,7 @@ class LastMinuteScheduler(BaseScheduler):
         # self.running here represents the previous batch that was processed - we are going to construct our decode queue and paused prefill jobs from this
         if(len(self.running) == 0):
             return 
-        # check if there was a decode job in the batch 
-        decode_job_in_batch = False
-        # for seq in self.running:
-        #     if seq.prompt_processing_finished and not seq.is_finished():
-        #         decode_job_in_batch = True
-        #         break
-        self.next_batch_run_time_for_decode = float("inf")
-        # if there was then set the next time a decode batch is going to run 
-        # if decode_job_in_batch:
-        #     self.minimum_time_between_tokens = float("inf")
-        #     for seq in self.running:
-        #         if seq.prompt_processing_finished:
-        #             # calculate the time between tokens for this sequence
-        #             self.minimum_time_between_tokens = min(self.minimum_time_between_tokens, self._tbt_for(seq) )
-        #     self.next_batch_run_time_for_decode = self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
-        
+        now = time.monotonic()
         for seq in self.running:
             if not seq.prompt_processing_finished:
                 if seq not in self.paused_prefills:
@@ -103,10 +93,7 @@ class LastMinuteScheduler(BaseScheduler):
             elif seq.prompt_processing_finished and not seq.is_finished(): 
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
-                # if self.next_batch_run_time_for_decode == float("inf"):
-                #     self.next_batch_run_time_for_decode = self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
-                #seq.last_schedulable_time = min(self.next_batch_run_time_for_decode, self.last_batch_end_time + self.minimum_time_between_tokens - self.offset * (self.last_batch_end_time - self.last_batch_start_time))
-                seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * (self.last_batch_end_time - self.last_batch_start_time)
+                seq.last_schedulable_time = now + self._tbt_for(seq) - self.offset * self._mean_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
 
     def on_step_completed(self) -> None:           # called from BaseLLMEngine
@@ -168,9 +155,6 @@ class LastMinuteScheduler(BaseScheduler):
                     )
             else:
                 break
-        if self.process_smallest_prefill: 
-            # processing paused prefills with smallest number of tokens left in the prefill phase
-            self.paused_prefills = sorted(self.paused_prefills, key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
         # process the paused prefill jobs
         while self.paused_prefills and num_batched_tokens < self.token_budget:
             seq = self.paused_prefills.pop(0) 
@@ -190,14 +174,6 @@ class LastMinuteScheduler(BaseScheduler):
             )
             running.append(seq) 
         
-        
-        
-        if self.process_smallest_prefill:
-            # reorder ONLY the arrivals that are <= now
-            k = 0
-            while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
-                k += 1
-            self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (seq.get_prompt_len() - seq.get_num_prompt_tokens_processed(), seq.arrival_time))
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]
@@ -207,7 +183,7 @@ class LastMinuteScheduler(BaseScheduler):
             if not self._check_request_prompt_length(seq): # model can not handle this big of a prompt
                 ignored_seq_ids.append(seq.seq_id)
                 continue
-                
+            
             # If the sequence group cannot be allocated, stop.
             if not self.block_manager.can_allocate(seq):
                 break
@@ -224,7 +200,7 @@ class LastMinuteScheduler(BaseScheduler):
 
             if next_num_prefill_tokens == 0:
                 # check if it is a decode job
-                assert not (seq.prompt_processing_finished and not seq.is_finished()), (f"It is a decode job")
+                assert not (seq.prompt_processing_finished and not seq.is_finished()), "It is a decode job"
                 break
 
             seq = self.waiting.pop(0)
@@ -238,9 +214,9 @@ class LastMinuteScheduler(BaseScheduler):
                 )
             )
             running.append(seq)
-        
+        max_num_non_time_critical_decodes_allowed = 15
         # now go through the remaining decode queue and add them to batch if there is space 
-        while self.decode_queue and num_batched_tokens < self.token_budget:
+        while self.decode_queue and num_batched_tokens < self.token_budget and noncritical_decodes < max_num_non_time_critical_decodes_allowed:
             seq = heapq.heappop(self.decode_queue)[2]
             if now < seq.last_schedulable_time:
                 noncritical_decodes += 1

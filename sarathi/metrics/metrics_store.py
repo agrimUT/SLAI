@@ -558,6 +558,14 @@ class MetricsStore(metaclass=Singleton):
             BatchMetricsCountDistribution.BATCH_NUM_NONCRITICAL_DECODE_TOKENS
         ].put_pair(scheduler_outputs.id, scheduler_outputs.num_noncritical_decodes)
 
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.DECODE_TOKENS_IN_BATCH
+        ].put(batch_end_time, scheduler_outputs.num_batched_output_tokens)
+
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.PREFILL_TOKENS_IN_BATCH
+        ].put(batch_end_time, scheduler_outputs.num_batched_prompt_tokens)
+
         self.batch_metrics_count_distribution[BatchMetricsCountDistribution.BATCH_NUM_PREEMPTED_SEQ_PREFILL].put_pair(
             scheduler_outputs.id,
             scheduler_outputs.preempted_seq_prefill,
@@ -590,6 +598,14 @@ class MetricsStore(metaclass=Singleton):
         self.completion_metrics_time_series[
             CompletionMetricsTimeSeries.GPU_SM_UTIL_PERCENT
         ].put(timestamp, sm_percent)
+
+    def record_active_gpu_seqs(self, *, timestamp: float, num_prefill: int, num_decode: int):
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.GPU_ACTIVE_PREFILL_SEQ
+        ].put(timestamp, num_prefill)
+        self.completion_metrics_time_series[
+            CompletionMetricsTimeSeries.GPU_ACTIVE_DECODE_SEQ
+        ].put(timestamp, num_decode)
 
     def _to_chrome_trace_dict(
         self,
@@ -888,6 +904,10 @@ class MetricsStore(metaclass=Singleton):
                 CompletionMetricsTimeSeries.WAITING_DECODE_QUEUE_SIZE,
                 CompletionMetricsTimeSeries.GPU_BLOCK_UTIL_PERCENT,
                 CompletionMetricsTimeSeries.GPU_SM_UTIL_PERCENT,
+                CompletionMetricsTimeSeries.DECODE_TOKENS_IN_BATCH,
+                CompletionMetricsTimeSeries.PREFILL_TOKENS_IN_BATCH,
+                CompletionMetricsTimeSeries.GPU_ACTIVE_DECODE_SEQ,
+                CompletionMetricsTimeSeries.GPU_ACTIVE_PREFILL_SEQ,
             ):
                 # raw, non-cumulative line
                 dataseries.plot_step(

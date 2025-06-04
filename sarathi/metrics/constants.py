@@ -122,5 +122,10 @@ class CompletionMetricsTimeSeries(enum.Enum):
     WAITING_DECODE_QUEUE_SIZE  = "waiting_decode_queue_size"
     GPU_BLOCK_UTIL_PERCENT = "gpu_block_util_percent" 
     GPU_SM_UTIL_PERCENT    = "gpu_sm_util_percent"
+    DECODE_TOKENS_IN_BATCH = "num_of_decode_tokens_in_batch_utilizing_gpu_compute"
+    PREFILL_TOKENS_IN_BATCH = "num_of_prefill_tokens_in_batch_utilizing_gpu_compute"
+    GPU_ACTIVE_PREFILL_SEQ  = "num_of_active_prefill_seq_on_gpu_memory"
+    GPU_ACTIVE_DECODE_SEQ   = "num_of_active_decode_seq_on_gpu_memory"
+
 
 

@@ -27,8 +27,6 @@ from sarathi.metrics.constants import (
 )
 from sarathi.transformers_utils.tokenizer import get_tokenizer
 from sarathi.utils import Counter, get_ip, get_random_port, unset_cuda_visible_devices
-from pynvml import (nvmlInit, nvmlShutdown, nvmlDeviceGetHandleByIndex,nvmlDeviceGetUtilizationRates)
-import torch 
 
 logger = init_logger(__name__)
 
@@ -106,14 +104,6 @@ class BaseLLMEngine:
 
         # Initialize the cluster.
         initialize_cluster()
-
-        nvmlInit()
-        self._nvml_handles = [
-            nvmlDeviceGetHandleByIndex(i)
-            for i in range(torch.cuda.device_count())
-        ]
-        import atexit
-        atexit.register(nvmlShutdown)
 
         # Create the parallel GPU workers.
         self._init_workers_ray()
@@ -281,6 +271,19 @@ class BaseLLMEngine:
 
         self.worker_map = {mp_rank: i for i, mp_rank in enumerate(model_parallel_ranks)}
 
+    def _count_gpu_active_seqs(self) -> tuple[int, int]:
+        prefill = decode = 0
+        # block_tables keys are seq_ids that still have KV blocks
+        for seq_id in self.scheduler.block_manager.block_tables.keys():
+            seq = self.seq_manager.get_seq(seq_id)      # helper in BaseSequenceManager
+            if seq is None:
+                continue
+            if not seq.prompt_processing_finished:
+                prefill += 1
+            elif not seq.is_finished():
+                decode += 1
+        return prefill, decode
+
     def _on_step_completed(
         self,
         scheduler_outputs: SchedulerOutputs,
@@ -310,10 +313,11 @@ class BaseLLMEngine:
             batch_id=scheduler_outputs.id,
             num_used=bm_used,
             num_total=bm_total,
-            timestamp=end_time,           # ← pass the batch-end wall-clock time
+            timestamp=end_time,          
         )
 
-        sm_pct = sum(nvmlDeviceGetUtilizationRates(h).gpu for h in self._nvml_handles) / len(self._nvml_handles)
+        sm_utils = self._run_workers("get_sm_util", get_all_outputs=True)
+        sm_pct   = sum(sm_utils) / len(sm_utils)
         self.metrics_store.record_sm_util(timestamp=end_time, sm_percent=sm_pct)
 
         self.metrics_store.on_batch_end(
@@ -322,6 +326,10 @@ class BaseLLMEngine:
             batch_start_time=start_time,
             batch_end_time=end_time,
         )
+
+        prefill_gpu, decode_gpu = self._count_gpu_active_seqs()
+        self.metrics_store.record_active_gpu_seqs(timestamp=end_time, num_prefill=prefill_gpu, num_decode=decode_gpu)
+
         all_request_outputs = self.seq_manager.generate_request_outputs(
             ignored_seqs, seq_metadata_list
         )
