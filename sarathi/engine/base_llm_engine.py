@@ -316,9 +316,9 @@ class BaseLLMEngine:
             timestamp=end_time,          
         )
 
-        sm_utils = self._run_workers("get_sm_util", get_all_outputs=True)
-        sm_pct   = sum(sm_utils) / len(sm_utils)
-        self.metrics_store.record_sm_util(timestamp=end_time, sm_percent=sm_pct)
+        # sm_utils = self._run_workers("get_sm_util", get_all_outputs=True)
+        # sm_pct   = sum(sm_utils) / len(sm_utils)
+        # self.metrics_store.record_sm_util(timestamp=end_time, sm_percent=sm_pct)
 
         self.metrics_store.on_batch_end(
             seq_metadata_list=seq_metadata_list,
@@ -361,7 +361,7 @@ class BaseLLMEngine:
                 the current time.
         """
         if arrival_time is None:
-            arrival_time = time.monotonic()
+            arrival_time = time.perf_counter()
 
         if prompt_token_ids is None:
             assert prompt is not None

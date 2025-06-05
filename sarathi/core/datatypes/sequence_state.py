@@ -256,7 +256,7 @@ class SequenceState:
             )
 
     def set_status(self, status: SequenceStatus) -> None:
-        current_time = time.monotonic()
+        current_time = time.perf_counter()
 
         if self._status == SequenceStatus.WAITING:
             self._handle_transitions_from_waiting_status(current_time, status)
@@ -272,10 +272,10 @@ class SequenceState:
         self._status = status
 
     def on_prompt_processing_completed(self) -> None:
-        self._prompt_processing_completed_at = time.monotonic()
+        self._prompt_processing_completed_at = time.perf_counter()
 
     def on_token_generated(self) -> None:
-        current_time = time.monotonic()
+        current_time = time.perf_counter()
 
         self._num_output_tokens += 1
 

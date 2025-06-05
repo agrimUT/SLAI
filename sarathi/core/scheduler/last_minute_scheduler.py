@@ -85,7 +85,6 @@ class LastMinuteScheduler(BaseScheduler):
         # self.running here represents the previous batch that was processed - we are going to construct our decode queue and paused prefill jobs from this
         if(len(self.running) == 0):
             return 
-        now = time.monotonic()
         for seq in self.running:
             if not seq.prompt_processing_finished:
                 if seq not in self.paused_prefills:
@@ -93,7 +92,7 @@ class LastMinuteScheduler(BaseScheduler):
             elif seq.prompt_processing_finished and not seq.is_finished(): 
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
-                seq.last_schedulable_time = now + self._tbt_for(seq) - self.offset * self._mean_batch_dur
+                seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
 
     def on_step_completed(self) -> None:           # called from BaseLLMEngine
@@ -104,8 +103,6 @@ class LastMinuteScheduler(BaseScheduler):
     
     def _schedule(self) -> SchedulerOutputs:
         # Fix the current time.
-        now = time.monotonic()
-
         running: List[Sequence] = [] # what I am going to include in the batch
         ignored_seq_ids: List[int] = []
         preempted_seq_ids: List[int] = []
@@ -118,8 +115,9 @@ class LastMinuteScheduler(BaseScheduler):
         prefill_waiting = 0
 
         self._post_batch_processing() # Add sequences to decode queue and paused prefill 
+        now = time.perf_counter()
         self.paused_prefills = self.policy.sort_by_priority(now, self.paused_prefills) # sort paused prefill sequences based on FCFS
-                
+        max_decodes_allowed = 50     
         while self.decode_queue and num_batched_tokens < self.token_budget: 
             seq = self.decode_queue[0][2]
             if now >= seq.last_schedulable_time: 
@@ -214,9 +212,9 @@ class LastMinuteScheduler(BaseScheduler):
                 )
             )
             running.append(seq)
-        max_num_non_time_critical_decodes_allowed = 15
         # now go through the remaining decode queue and add them to batch if there is space 
-        while self.decode_queue and num_batched_tokens < self.token_budget and noncritical_decodes < max_num_non_time_critical_decodes_allowed:
+        #and (noncritical_decodes + critical_decodes) < max_decodes_allowed
+        while self.decode_queue and num_batched_tokens < self.token_budget :
             seq = heapq.heappop(self.decode_queue)[2]
             if now < seq.last_schedulable_time:
                 noncritical_decodes += 1

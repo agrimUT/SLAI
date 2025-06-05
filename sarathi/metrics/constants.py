@@ -62,6 +62,8 @@ class SequenceMetricsTimeDistributions(enum.Enum):
     DECODE_TIME_EXECUTION_PLUS_PREEMPTION_NORMALIZED = (
         "decode_time_execution_plus_preemption_normalized"
     )
+    REQUEST_ARRIVAL_TIME = "request_arrival_time"
+
 
 
 class TokenMetricsTimeDistribution(enum.Enum):
