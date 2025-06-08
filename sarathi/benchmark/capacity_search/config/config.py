@@ -76,6 +76,7 @@ class SchedulerConfig:
     offset: Optional[float] = None
     time_between_tokens: Optional[float] = None
     process_smallest_prefill: Optional[bool] = None
+    limit_total_decodes: Optional[int] = None  # This is the capacity for last_minute scheduler
     capacity: Optional[float] = None       
 
     def get_key(self):
@@ -91,6 +92,7 @@ class SchedulerConfig:
                 f"_off{self.offset:.1f}"
                 f"_tbt{self.time_between_tokens:.1f}"
                 f"_ps{self.process_smallest_prefill}"
+                f"_maxdecodes{self.limit_total_decodes}"  # Assuming capacity is the limit for total decodes
             )
 
         return key
@@ -121,6 +123,7 @@ class SchedulerConfig:
             assert self.offset is not None
             assert self.time_between_tokens is not None
             assert self.process_smallest_prefill is not None
+            assert self.limit_total_decodes is not None
             return {
                 "replica_scheduler_provider": "last_minute",
                 "replica_scheduler_max_batch_size": self.batch_size,
@@ -128,6 +131,7 @@ class SchedulerConfig:
                 "last_minute_scheduler_offset": self.offset,
                 "last_minute_scheduler_time_between_tokens": self.time_between_tokens,
                 "last_minute_scheduler_process_smallest_prefill": self.process_smallest_prefill,
+                "last_minute_scheduler_limit_total_decodes": self.limit_total_decodes,
             }
         else:
             raise ValueError(f"Unknown scheduler: {self.scheduler}")

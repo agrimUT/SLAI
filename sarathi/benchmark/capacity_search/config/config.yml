@@ -28,6 +28,8 @@ schedulers:
     offset: 2
     time_between_tokens: 0.5
     process_smallest_prefill: true
+    limit_total_decodes: 80
+    batch_size: 128
 
 traces:
   - name: chat

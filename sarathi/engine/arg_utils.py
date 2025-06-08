@@ -60,6 +60,7 @@ class EngineArgs:
     offset: Optional[float] = None # Add your offset argument
     time_between_tokens: Optional[float] = None # Add your tbt argument
     process_smallest_prefill : Optional[bool] = None # Add your process_smallest_prefill argument
+    limit_total_decodes: Optional[int] = None  # Add your limit_total_decodes argument
     # Metrics store parameters
     write_metrics: bool = True
     output_dir: str = "."
@@ -129,6 +130,7 @@ class EngineArgs:
             assert self.offset is not None, "offset must be set for last minute scheduler"
             assert self.time_between_tokens is not None, "time_between_tokens must be set for last minute scheduler"
             assert self.process_smallest_prefill is not None, "process_smallest_prefill must be set for last minute scheduler"
+            assert self.limit_total_decodes is not None, "limit_total_decodes must be set for last minute scheduler"
             scheduler_config = LastMinuteSchedulerConfig(
                 self.max_num_seqs,
                 model_config.get_max_model_len(),
@@ -137,6 +139,7 @@ class EngineArgs:
                 self.offset,
                 self.time_between_tokens,
                 self.process_smallest_prefill,
+                self.limit_total_decodes,
             )
         else:
             raise ValueError(f"Unsupported scheduler type: {self.scheduler_type}")
