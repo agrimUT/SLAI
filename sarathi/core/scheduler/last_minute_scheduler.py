@@ -41,6 +41,8 @@ class LastMinuteScheduler(BaseScheduler):
         self._active_seq_ids: set[int] = set()
         self._mean_batch_dur   = 0.0   
         self._num_batches_seen = 0
+        self._exp_batch_dur = 0 
+        self._exp_parameter = 0.2
     def get_queue_sizes(self) -> tuple[int, int]:
         """Return (#prefill_waiting, #decode_waiting)."""
         return (self.prefill_waiting + len(self.paused_prefills)), (len(self.decode_queue))
@@ -74,7 +76,8 @@ class LastMinuteScheduler(BaseScheduler):
         self.last_batch_end_time = batch_end_time
         dur = batch_end_time - batch_start_time
         self._num_batches_seen += 1
-        self._mean_batch_dur += (dur - self._mean_batch_dur) / self._num_batches_seen
+        #self._mean_batch_dur += (dur - self._mean_batch_dur) / self._num_batches_seen
+        self._exp_batch_dur = self._exp_parameter * dur + (1 - self._exp_parameter) * self._exp_batch_dur
         
     def _tbt_for(self, seq: Sequence) -> float:
         """Return the time-between-tokens for this sequence, falling back to
@@ -93,7 +96,8 @@ class LastMinuteScheduler(BaseScheduler):
             elif seq.prompt_processing_finished and not seq.is_finished(): 
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
-                seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
+                #seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
+                seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._exp_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
 
     def on_step_completed(self) -> None:           # called from BaseLLMEngine
