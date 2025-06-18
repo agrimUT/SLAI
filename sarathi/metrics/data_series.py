@@ -271,9 +271,14 @@ class DataSeries:
 
     def plot_histogram(self, path: str, plot_name: str) -> None:
         if len(self.data_series) == 0:
-            return
+            return                          # nothing recorded → skip silently
 
         df = self.to_df()
+        series = df[self.y_name].dropna()   # drop NaNs
+
+        if series.empty:
+            return                          # all-NaN → nothing to plot
+
 
         self.print_distribution_stats(df, plot_name)
 

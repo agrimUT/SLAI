@@ -42,7 +42,7 @@ class LastMinuteScheduler(BaseScheduler):
         self._mean_batch_dur   = 0.0   
         self._num_batches_seen = 0
         self._exp_batch_dur = 0 
-        self._exp_parameter = 0.2
+        self._exp_parameter = 0.1
     def get_queue_sizes(self) -> tuple[int, int]:
         """Return (#prefill_waiting, #decode_waiting)."""
         return (self.prefill_waiting + len(self.paused_prefills)), (len(self.decode_queue))
