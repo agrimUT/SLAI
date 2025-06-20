@@ -82,12 +82,16 @@ class SequenceState:
 
     @property
     def e2e_time_piecewise_normalized(self) -> float:
+        if self._num_output_tokens == 0:
+            return float("inf")
         return self.scheduling_delay + (
             self.execution_plus_preemption_time / self._num_output_tokens
         )
 
     @property
     def e2e_time_normalized(self) -> float:
+        if self._num_output_tokens == 0:
+            return float("inf")
         return self.e2e_time / self._num_output_tokens
 
     @property
@@ -141,6 +145,8 @@ class SequenceState:
 
     @property
     def decode_execution_plus_preemption_time_normalized(self) -> Optional[float]:
+        if self._num_output_tokens == 0:
+            return float("inf")
         return (
             self.decode_execution_plus_preemption_time / self._num_output_tokens
             if self.decode_execution_plus_preemption_time
@@ -161,6 +167,8 @@ class SequenceState:
 
     @property
     def execution_time_normalized(self) -> float:
+        if self._num_output_tokens == 0:
+            return float("inf")
         return self.execution_time / self._num_output_tokens
 
     @property
@@ -173,6 +181,8 @@ class SequenceState:
 
     @property
     def execution_plus_preemption_time_normalized(self) -> float:
+        if self._num_output_tokens == 0:
+            return float("inf")
         return self.execution_plus_preemption_time / self._num_output_tokens
 
     @property

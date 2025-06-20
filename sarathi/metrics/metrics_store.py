@@ -328,10 +328,15 @@ class MetricsStore(metaclass=Singleton):
         self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_DECODE_TOKENS].put(
             self._get_seq_id(seq.seq_id), seq.state.num_output_tokens
         )
-        self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_PD_RATIO].put(
-            self._get_seq_id(seq.seq_id),
-            seq.state.num_prompt_tokens / seq.state.num_output_tokens,
-        )
+        if seq.state.num_output_tokens > 0:
+            self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_PD_RATIO].put(
+                self._get_seq_id(seq.seq_id),
+                seq.state.num_prompt_tokens / seq.state.num_output_tokens,
+            )
+        else:
+            self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_PD_RATIO].put(
+                self._get_seq_id(seq.seq_id), 0.0
+            )
         self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_NUM_RESTARTS].put(
             self._get_seq_id(seq.seq_id), seq.state.num_restarts
         )
