@@ -40,3 +40,4 @@ BlockSpaceManagerRegistry.register(
 BlockSpaceManagerRegistry.register(
     SchedulerType.LAST_MINUTE, LastMinuteBlockSpaceManager
 )  # Placeholder for LastMinuteBlockSpaceManager
+BlockSpaceManagerRegistry.register(SchedulerType.HOLD_N, VLLMBlockSpaceManager)

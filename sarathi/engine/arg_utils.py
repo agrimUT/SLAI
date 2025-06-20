@@ -20,7 +20,7 @@ from sarathi.config import (
     LastMinuteSchedulerConfig,
 )
 
-
+from sarathi.core.scheduler.hold_n_scheduler import Hold_NSchedulerConfig
 @dataclass
 class EngineArgs:
     """Arguments for Sarathi engine."""
@@ -61,6 +61,10 @@ class EngineArgs:
     time_between_tokens: Optional[float] = None # Add your tbt argument
     process_smallest_prefill : Optional[bool] = None # Add your process_smallest_prefill argument
     limit_total_decodes: Optional[int] = None  # Add your limit_total_decodes argument
+    # hold_n scheduler parameters
+    hold_n_scheduler_hold_n: Optional[int] = None   # flag created by ConfigParser
+    hold_n_scheduler_token_budget: Optional[int] = None  # flag created by ConfigParser
+    hold_n_scheduler_prefill_factor: Optional[int] = None  # flag created by Config
     # Metrics store parameters
     write_metrics: bool = True
     output_dir: str = "."
@@ -140,6 +144,19 @@ class EngineArgs:
                 self.time_between_tokens,
                 self.process_smallest_prefill,
                 self.limit_total_decodes,
+            )
+        elif self.scheduler_type == SchedulerType.HOLD_N.name.lower():
+            assert self.hold_n_scheduler_hold_n is not None, "hold_n must be set"
+            assert self.hold_n_scheduler_token_budget is not None, "token_budget must be set"
+            assert self.hold_n_scheduler_prefill_factor is not None, "prefill_factor must be set"
+    
+            scheduler_config = Hold_NSchedulerConfig(
+                self.max_num_seqs,
+                model_config.get_max_model_len(),
+                num_pipeline_stages,
+                self.hold_n_scheduler_hold_n,
+                self.hold_n_scheduler_token_budget,
+                self.hold_n_scheduler_prefill_factor,
             )
         else:
             raise ValueError(f"Unsupported scheduler type: {self.scheduler_type}")

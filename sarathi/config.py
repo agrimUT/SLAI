@@ -18,6 +18,7 @@ class SchedulerType(BaseIntEnum):
     SARATHI = 4
     SIMPLE_CHUNKING = 5
     LAST_MINUTE = 6
+    HOLD_N = 7
 
 
 class ModelConfig:

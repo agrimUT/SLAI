@@ -100,6 +100,10 @@ class BenchmarkRunner:
             time_between_tokens=self._config.last_minute_scheduler_time_between_tokens,
             process_smallest_prefill=self._config.last_minute_scheduler_process_smallest_prefill,
             limit_total_decodes=self._config.last_minute_scheduler_limit_total_decodes,
+            # hold_n scheduler config
+            hold_n_scheduler_hold_n=self._config.hold_n_scheduler_hold_n,
+            hold_n_scheduler_token_budget=self._config.hold_n_scheduler_token_budget,
+            hold_n_scheduler_prefill_factor=self._config.hold_n_scheduler_prefill_factor,
             # wandb config
             write_metrics=self._config.write_metrics,
             enable_chrome_trace=self._config.write_chrome_trace,
