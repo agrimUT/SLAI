@@ -8,12 +8,12 @@ OUT=$REPO/benchmark_output/plot2
 MODEL="mistralai/Mistral-7B-Instruct-v0.2"
 GPU=0
 
-DECODE_NS=(256)   # sweep points
+DECODE_NS=(8 16 32 64 128 256)   # sweep points
 TOK_BUDGET=512
-REPS=1                             # repetitions per N
+REPS=200                             # repetitions per N
 
 mkdir -p "$OUT"
-SUMMARY="$OUT/summary_500.csv"
+SUMMARY="$OUT/summary.csv"
 echo "N_decode,run_id,batch_exec_time_s" > "$SUMMARY"       # overwrite each run
 
 for N in "${DECODE_NS[@]}"; do
@@ -62,7 +62,7 @@ for N in "${DECODE_NS[@]}"; do
     # ------------------------------------------------------------------
     #  Clean-up: delete the whole timestamped run directory
     # ------------------------------------------------------------------
-    #rm -rf "$RUN_DIR"
+    rm -rf "$RUN_DIR"
     echo "   ➜ recorded $LAST_TIME s  (deleted $RUN_DIR)"
   done
 done
