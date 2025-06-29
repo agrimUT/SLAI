@@ -133,6 +133,19 @@ class SchedulerConfig:
                 "last_minute_scheduler_process_smallest_prefill": self.process_smallest_prefill,
                 "last_minute_scheduler_limit_total_decodes": self.limit_total_decodes,
             }
+        elif self.scheduler == "experimental_scheduler":
+            assert self.token_budget is not None
+            assert self.offset is not None
+            assert self.time_between_tokens is not None
+            assert self.limit_total_decodes is not None
+            return {
+                "replica_scheduler_provider": "experimental_scheduler",
+                "replica_scheduler_max_batch_size": self.batch_size,
+                "experimental_scheduler_token_budget": self.token_budget,
+                "experimental_scheduler_offset": self.offset,
+                "experimental_scheduler_time_between_tokens": self.time_between_tokens,
+                "experimental_scheduler_limit_total_decodes": self.limit_total_decodes,
+            }
         else:
             raise ValueError(f"Unknown scheduler: {self.scheduler}")
 

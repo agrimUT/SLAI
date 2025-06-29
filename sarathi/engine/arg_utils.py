@@ -18,6 +18,7 @@ from sarathi.config import (
     SimpleChunkingSchedulerConfig,
     VLLMSchedulerConfig,
     LastMinuteSchedulerConfig,
+    ExperimentalSchedulerConfig,
 )
 
 from sarathi.core.scheduler.hold_n_scheduler import Hold_NSchedulerConfig
@@ -157,6 +158,20 @@ class EngineArgs:
                 self.hold_n_scheduler_hold_n,
                 self.hold_n_scheduler_token_budget,
                 self.hold_n_scheduler_prefill_factor,
+            )
+        elif self.scheduler_type == SchedulerType.EXPERIMENTAL_SCHEDULER.name.lower():
+            assert self.token_budget is not None, "token_budget must be set for experimental scheduler"
+            assert self.offset is not None, "offset must be set for experimental scheduler"
+            assert self.time_between_tokens is not None, "time_between_tokens must be set for experimental scheduler"
+            assert self.limit_total_decodes is not None, "limit_total_decodes must be set for experimental scheduler"
+            scheduler_config = ExperimentalSchedulerConfig(
+                self.max_num_seqs,
+                model_config.get_max_model_len(),
+                num_pipeline_stages,
+                self.token_budget,
+                self.offset,
+                self.time_between_tokens,
+                self.limit_total_decodes,
             )
         else:
             raise ValueError(f"Unsupported scheduler type: {self.scheduler_type}")

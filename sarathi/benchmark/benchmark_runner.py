@@ -65,7 +65,18 @@ class BenchmarkRunner:
             chunk_size = self._config.sarathi_scheduler_chunk_size
         elif self._config.replica_scheduler_provider == "simple_chunking":
             chunk_size = self._config.simple_chunking_scheduler_chunk_size
-
+        token_budget = offset = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
+        if self._config.replica_scheduler_provider == "last_minute":
+            token_budget        = self._config.last_minute_scheduler_token_budget
+            offset              = self._config.last_minute_scheduler_offset
+            time_between_tokens = self._config.last_minute_scheduler_time_between_tokens
+            process_smallest_prefill = self._config.last_minute_scheduler_process_smallest_prefill
+            limit_total_decodes = self._config.last_minute_scheduler_limit_total_decodes
+        elif self._config.replica_scheduler_provider == "experimental_scheduler":
+            token_budget        = self._config.experimental_scheduler_token_budget
+            offset              = self._config.experimental_scheduler_offset
+            time_between_tokens = self._config.experimental_scheduler_time_between_tokens
+            limit_total_decodes = self._config.experimental_scheduler_limit_total_decodes
         self._llm_engine = LLMEngine.from_engine_args(
             # replica config
             replica_id=replica_id,
@@ -94,12 +105,12 @@ class BenchmarkRunner:
             chunk_schedule_stages=self._config.sarathi_scheduler_chunk_schedule_stages,
             # vllm scheduler config
             max_num_batched_tokens=self._config.vllm_scheduler_max_tokens_in_batch,
-            # last‑minute scheduler config
-            token_budget=self._config.last_minute_scheduler_token_budget,
-            offset=self._config.last_minute_scheduler_offset,
-            time_between_tokens=self._config.last_minute_scheduler_time_between_tokens,
-            process_smallest_prefill=self._config.last_minute_scheduler_process_smallest_prefill,
-            limit_total_decodes=self._config.last_minute_scheduler_limit_total_decodes,
+            # last‑minute and experimental scheduler config
+            token_budget        = token_budget,
+            offset              = offset,
+            time_between_tokens = time_between_tokens,
+            process_smallest_prefill = process_smallest_prefill,
+            limit_total_decodes = limit_total_decodes,
             # hold_n scheduler config
             hold_n_scheduler_hold_n=self._config.hold_n_scheduler_hold_n,
             hold_n_scheduler_token_budget=self._config.hold_n_scheduler_token_budget,

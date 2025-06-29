@@ -19,6 +19,7 @@ class SchedulerType(BaseIntEnum):
     SIMPLE_CHUNKING = 5
     LAST_MINUTE = 6
     HOLD_N = 7
+    EXPERIMENTAL_SCHEDULER = 8
 
 
 class ModelConfig:
@@ -414,6 +415,33 @@ class LastMinuteSchedulerConfig(BaseSchedulerConfig):
     @property
     def type(self):
         return SchedulerType.LAST_MINUTE
+    
+class ExperimentalSchedulerConfig(BaseSchedulerConfig):
+
+    def __init__(
+        self,
+        max_num_seqs: int,
+        max_model_len: int,
+        num_pipeline_stages: int,
+        token_budget: int,
+        offset : float,
+        time_between_tokens: float,
+        limit_total_decodes: int,
+    ) -> None:
+        super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
+        self.token_budget = token_budget
+        self.offset = offset
+        self.time_between_tokens = time_between_tokens
+        self.limit_total_decodes = limit_total_decodes
+
+    @property
+    def max_num_batched_tokens(self):
+        # maximum number of tokens to be processed in a single iteration
+        return self.token_budget
+
+    @property
+    def type(self):
+        return SchedulerType.EXPERIMENTAL_SCHEDULER
 
 class MetricsConfig:
     """Metric configuration."""

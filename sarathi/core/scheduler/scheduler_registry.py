@@ -8,6 +8,7 @@ from sarathi.core.scheduler.simple_chunking_scheduler import SimpleChunkingSched
 from sarathi.core.scheduler.last_minute_scheduler import LastMinuteScheduler
 from sarathi.core.scheduler.vllm_scheduler import VLLMScheduler
 from sarathi.core.scheduler.hold_n_scheduler import Hold_NScheduler
+from sarathi.core.scheduler.experimental_scheduler import ExperimentalScheduler
 from sarathi.utils.base_registry import BaseRegistry
 
 
@@ -25,3 +26,4 @@ SchedulerRegistry.register(SchedulerType.SARATHI, SarathiScheduler)
 SchedulerRegistry.register(SchedulerType.SIMPLE_CHUNKING, SimpleChunkingScheduler)
 SchedulerRegistry.register(SchedulerType.LAST_MINUTE, LastMinuteScheduler)
 SchedulerRegistry.register(SchedulerType.HOLD_N, Hold_NScheduler)
+SchedulerRegistry.register(SchedulerType.EXPERIMENTAL_SCHEDULER, ExperimentalScheduler)
