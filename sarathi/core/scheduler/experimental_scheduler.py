@@ -41,6 +41,7 @@ class ExperimentalScheduler(BaseScheduler):
         self._active_seq_ids: set[int] = set()
         self._mean_batch_dur   = 0.0   
         self._num_batches_seen = 0
+        self._max_batch_dur = 0.0 
     def get_queue_sizes(self) -> tuple[int, int]:
         """Return (#prefill_waiting, #decode_waiting)."""
         return (self.prefill_waiting + len(self.paused_prefills)), (len(self.decode_queue))
@@ -75,6 +76,7 @@ class ExperimentalScheduler(BaseScheduler):
         dur = batch_end_time - batch_start_time
         self._num_batches_seen += 1
         self._mean_batch_dur += (dur - self._mean_batch_dur) / self._num_batches_seen
+        self._max_batch_dur = max(self._max_batch_dur, dur)
         
     def _tbt_for(self, seq: Sequence) -> float:
         """Return the time-between-tokens for this sequence, falling back to
@@ -83,7 +85,8 @@ class ExperimentalScheduler(BaseScheduler):
 
     def _slack(self, seq, now):
         prefill_deadline = 1 
-        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
+        #est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
+        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
         waiting     = now - seq.arrival_time
         return prefill_deadline - est_prefill - waiting
     def _post_batch_processing(self) -> None:
