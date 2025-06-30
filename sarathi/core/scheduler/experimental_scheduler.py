@@ -183,7 +183,7 @@ class ExperimentalScheduler(BaseScheduler):
         k = 0
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now), reverse=True) 
         
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
