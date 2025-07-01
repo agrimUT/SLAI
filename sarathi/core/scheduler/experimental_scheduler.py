@@ -89,9 +89,11 @@ class ExperimentalScheduler(BaseScheduler):
         est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
         waiting     = now - seq.arrival_time
         return prefill_deadline - est_prefill - waiting
+    
     def _length(self, seq: Sequence) -> int:
         """Return the length of the sequence in tokens."""
         return seq.get_prompt_len()
+    
     def _post_batch_processing(self) -> None:
         # self.running here represents the previous batch that was processed - we are going to construct our decode queue and paused prefill jobs from this
         if(len(self.running) == 0):
@@ -187,7 +189,7 @@ class ExperimentalScheduler(BaseScheduler):
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now), reverse=True) 
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq), reverse=True) 
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq)) 
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]
