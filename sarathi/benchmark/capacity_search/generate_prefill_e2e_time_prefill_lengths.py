@@ -34,6 +34,8 @@ PATH_LABEL_OVERRIDES = {
         r"last minute ($\tau = 512,\ \alpha = 128,\ \beta = 128,\ \delta = 5$)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_reverseslack/runs/a63e0e4b":
         r"experimental (reverse slack)",
+    "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_shortestjobfirst/runs/a63e0e4b":
+        r"experimental (shortest)",
 }
 
 # ───────────────────────────────────────────────────────────────
@@ -49,8 +51,15 @@ _color_iter  = itertools.cycle(default_colors)
 LABEL2MARKER = {lbl: next(_marker_iter) for lbl in LABELS_IN_ORDER}
 LABEL2COLOR  = {lbl: next(_color_iter)  for lbl in LABELS_IN_ORDER}
 
-def marker_for(lbl): LABEL2MARKER.setdefault(lbl, next(_marker_iter))
-def color_for(lbl):  LABEL2COLOR.setdefault(lbl,  next(_color_iter))
+def marker_for(lbl: str):
+    if lbl not in LABEL2MARKER:
+        LABEL2MARKER[lbl] = next(_marker_iter)
+    return LABEL2MARKER[lbl]          # ← RETURN!
+
+def color_for(lbl: str):
+    if lbl not in LABEL2COLOR:
+        LABEL2COLOR[lbl] = next(_color_iter)
+    return LABEL2COLOR[lbl]           # ← RETURN!
 
 # ───────────────────────────────────────────────────────────────
 # 3. helpers
@@ -110,37 +119,51 @@ def collect_data(run_dirs):
 # ───────────────────────────────────────────────────────────────
 def plot_all(qps_map, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
+    def plot_with_markers(ax, x, y, *, color, marker, label,
+                      ms=8, lw=1.4, mew=1):
+        ax.plot(
+            x, y,
+            color=color,
+            linewidth=lw,
+            linestyle='-',
+            marker=marker,
+            markeredgecolor=color,
+            markeredgewidth=mew,
+            label=label,
+        )
 
     for qps, series in qps_map.items():
-        # sort for consistent legend order
         series.sort(key=lambda t: LABELS_IN_ORDER.index(t[0])
-                                   if t[0] in LABELS_IN_ORDER else t[0])
+                                if t[0] in LABELS_IN_ORDER else t[0])
 
-        # 5-a  mean latency
-        plt.figure()
+        # ── 5-a mean latency ─────────────────────────────────────
+        fig, ax = plt.subplots()
         for lbl, x, y_mean, _ in series:
-            plt.plot(x, y_mean,
-                     marker=marker_for(lbl), color=color_for(lbl),
-                     linestyle='-', label=lbl)
-        plt.xlabel("Prefill length (tokens)")
-        plt.ylabel("Mean prefill_e2e_time (s)")
-        plt.title(f"Prefill latency vs. length — QPS {qps}")
-        plt.grid(True); plt.legend(); plt.tight_layout()
-        f = out_dir / f"prefill_length_vs_prefill_e2e_time_qps{qps}.pdf"
-        plt.savefig(f, format="pdf"); plt.close(); print("Wrote", f)
+            plot_with_markers(ax, x, y_mean,
+                              color=color_for(lbl),
+                              marker=marker_for(lbl),
+                              label=lbl)
+        ax.set_xlabel("Prefill length (tokens)")
+        ax.set_ylabel("Mean prefill_e2e_time (s)")
+        ax.set_title(f"Prefill latency vs. length — QPS {qps}")
+        ax.grid(True); ax.legend(); fig.tight_layout()
+        out = out_dir / f"prefill_length_vs_prefill_e2e_time_qps{qps}.pdf"
+        fig.savefig(out); plt.close(fig); print("Wrote", out)
 
-        # 5-b  counts
-        plt.figure()
+        # ── 5-b bucket counts ───────────────────────────────────
+        fig2, ax2 = plt.subplots()
         for lbl, x, _, y_cnt in series:
-            plt.plot(x, y_cnt,
-                     marker=marker_for(lbl), color=color_for(lbl),
-                     linestyle='-', label=lbl)
-        plt.xlabel("Prefill length (tokens)")
-        plt.ylabel("Number of completed prefill jobs")
-        plt.title(f"Number of prefills completed — QPS {qps}")
-        plt.grid(True); plt.legend(); plt.tight_layout()
-        f2 = out_dir / f"number_prefills_complete_qps{qps}.pdf"
-        plt.savefig(f2, format="pdf"); plt.close(); print("Wrote", f2)
+            plot_with_markers(ax2, x, y_cnt,
+                              color=color_for(lbl),
+                              marker=marker_for(lbl),
+                              label=lbl)
+        ax2.set_xlabel("Prefill length (tokens)")
+        ax2.set_ylabel("Number of completed prefill jobs")
+        ax2.set_title(f"Number of prefills completed — QPS {qps}")
+        ax2.grid(True); ax2.legend(); fig2.tight_layout()
+        out2 = out_dir / f"number_prefills_complete_qps{qps}.pdf"
+        fig2.savefig(out2); plt.close(fig2); print("Wrote", out2)
+
 
 # ───────────────────────────────────────────────────────────────
 def main():
