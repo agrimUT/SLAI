@@ -45,13 +45,16 @@ def main(base_dir, run_id, output=None):
     df = pd.read_csv(summary)  # this one is standard comma-separated
 
     # compute per-QPS fractions
-    fractions = {}
+    fractions_l1 = {}
+    fractions_l2 = {}
     for qps in df["qps"].unique():
         pattern = base / "runs" / run_id / str(qps) / "*" / "replica_*" / "sequence_metrics.csv"
         seq_files = glob.glob(str(pattern))
-        fractions[qps] = compute_fraction(seq_files)
+        fractions_l1[qps] = compute_fraction(seq_files, 1)
+        fractions_l2[qps] = compute_fraction(seq_files, 2)
 
-    df["fraction_sched_delay_prefill_lt1"] = df["qps"].map(fractions)
+    df["fraction_sched_delay_prefill_lt1"] = df["qps"].map(fractions_l1)
+    df["fraction_sched_delay_prefill_lt2"] = df["qps"].map(fractions_l2)
 
     out_path = summary if output is None else Path(output)
     df.to_csv(out_path, index=False)
