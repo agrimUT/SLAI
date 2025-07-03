@@ -85,8 +85,8 @@ class ExperimentalScheduler(BaseScheduler):
 
     def _slack(self, seq, now):
         prefill_deadline = 2
-        #est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
-        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
+        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
+        #est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
         waiting     = now - seq.arrival_time
         return prefill_deadline - est_prefill - waiting
     
