@@ -36,6 +36,8 @@ PATH_LABEL_OVERRIDES = {
         r"experimental (reverse slack)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_shortestjobfirst/runs/a63e0e4b":
         r"experimental (shortest)",
+    "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_bucketsorting/runs/a63e0e4b":
+        r"experimental (bucket sorting)",
 }
 
 # ───────────────────────────────────────────────────────────────
