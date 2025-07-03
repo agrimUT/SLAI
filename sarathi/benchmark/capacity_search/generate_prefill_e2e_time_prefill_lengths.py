@@ -38,6 +38,8 @@ PATH_LABEL_OVERRIDES = {
         r"experimental (shortest)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_bucketsorting/runs/a63e0e4b":
         r"experimental (bucket sorting)",
+    "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_bucketsorting_prefilldeadline2/runs/a63e0e4b":
+        r"experimental (bucket sorting, prefill deadline = 2s)",
 }
 
 # ───────────────────────────────────────────────────────────────
