@@ -150,6 +150,8 @@ class BenchmarkRunner:
             "arrival_time": first_request_time + request.arrived_at,
             "time_between_tokens": request.time_between_tokens,
             "is_strict_tbt": request.is_strict_tbt,
+            "prefill_e2e_time_deadline": request.prefill_e2e_time_deadline,
+            "is_strict_prefill_e2e_time": request.is_strict_prefill_e2e_time,
         }
 
     def warmup(self) -> None:

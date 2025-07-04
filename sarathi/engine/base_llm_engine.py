@@ -343,6 +343,8 @@ class BaseLLMEngine:
         arrival_time: Optional[float] = None,
         time_between_tokens: Optional[float] = None,
         is_strict_tbt: Optional[bool] = None,
+        prefill_e2e_time_deadline: Optional[float] = None,
+        is_strict_prefill_e2e_time: Optional[bool] = None,
     ) -> None:
         """Add a request to the engine's request pool.
 
@@ -381,6 +383,8 @@ class BaseLLMEngine:
             sampling_params,
             time_between_tokens = time_between_tokens,
             is_strict_tbt=is_strict_tbt,
+            prefill_e2e_time_deadline=prefill_e2e_time_deadline,
+            is_strict_prefill_e2e_time=is_strict_prefill_e2e_time
         )
         # Add the sequence to the scheduler.
         self.seq_manager.add_seq(seq)

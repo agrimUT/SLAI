@@ -95,6 +95,8 @@ class SequenceMetricsHistogram(enum.Enum):
     REQUEST_NUM_PAUSES = "request_num_pauses"
     REQUEST_NUM_IGNORED = "request_num_ignored"
     REQUEST_TIME_BETWEEN_TOKENS = "request_time_between_tokens"  
+    REQUEST_PREFILL_E2E_DEADLINE = "prefill_e2e_deadline"
+    REQUEST_IS_STRICT_PREFILL = "is_strict_prefill"
 
 
 class BatchMetricsCountDistribution(enum.Enum):

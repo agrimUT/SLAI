@@ -48,6 +48,10 @@ def get_args():
     parser.add_argument("--hetero_tbt_prob", type=float, default=0.0)
     parser.add_argument("--hetero_strict_tbt", type=float, default=0.15)
     parser.add_argument("--hetero_relaxed_tbt", type=float, default=0.15)
+    parser.add_argument("--ttft_prefactor_strict", type=float, default=5.0)
+    parser.add_argument("--ttft_prefactor_relaxed", type=float, default=10.0)
+    parser.add_argument("--max-tokens-in-batch", type=int, default=512)
+    parser.add_argument("--ttft_base_batch_latency_s", type=float, default=0.07)
     parser.add_argument('--prefill-time-threshold', type=float, default=2.0,
                    help='Numeric SLO (seconds) for prefill_e2e_time')
     parser.add_argument('--prefill-time-quantile',  type=float, default=0.50,

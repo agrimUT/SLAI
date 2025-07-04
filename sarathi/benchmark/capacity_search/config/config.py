@@ -280,6 +280,10 @@ class BenchmarkConfig:
     hetero_tbt_prob:   float = 0.0
     hetero_strict_tbt: float = 0.15
     hetero_relaxed_tbt:float = 0.15
+    ttft_prefactor_strict: float = 5.0
+    ttft_prefactor_relaxed: float = 10.0
+    max_tokens_in_batch: int = 512
+    ttft_base_batch_latency_s: float = 0.07
 
     def to_config_dict(self):
         if self.wandb_project:
@@ -304,6 +308,10 @@ class BenchmarkConfig:
             "hetero_tbt_prob":   self.hetero_tbt_prob,
             "hetero_strict_tbt": self.hetero_strict_tbt,
             "hetero_relaxed_tbt":self.hetero_relaxed_tbt,
+            "ttft_prefactor_strict": self.ttft_prefactor_strict,
+            "ttft_prefactor_relaxed": self.ttft_prefactor_relaxed,
+            "max_tokens_in_batch": self.max_tokens_in_batch,
+            "ttft_base_batch_latency_s": self.ttft_base_batch_latency_s,
             **wandb_args,
         }
 

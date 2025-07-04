@@ -39,6 +39,10 @@ class ConfigParser:
         self._parser.add_argument("--hetero_strict_tbt", type=float, default=0.15)
         self._parser.add_argument("--hetero_relaxed_tbt",type=float, default=0.15)
         self._parser.add_argument("--tbt-slo-value", type=float, default=0.2)
+        self._parser.add_argument("--ttft_prefactor_strict", type=float, default=5.0)
+        self._parser.add_argument("--ttft_prefactor_relaxed", type=float, default=10.0)
+        self._parser.add_argument("--max_tokens_in_batch", type = int, default=512)
+        self._parser.add_argument("--ttft_base_batch_latency_s", type=float, default=0.07)
         self._args = None
         self._load_yaml(config_file)
         self._parse_args()

@@ -344,7 +344,7 @@ class MetricsStore(metaclass=Singleton):
             self._get_seq_id(seq.seq_id), seq.state.num_pauses
         )
         self.seq_metrics_histogram[SequenceMetricsHistogram.REQUEST_TIME_BETWEEN_TOKENS].put(
-            self._get_seq_id(seq.seq_id), seq.time_between_tokens,          # <── property added in Request
+            self._get_seq_id(seq.seq_id), seq.time_between_tokens if seq.time_between_tokens is not None else float("nan")       
         )
 
         # then log all the time distributions
@@ -414,6 +414,20 @@ class MetricsStore(metaclass=Singleton):
             self._get_seq_id(seq.seq_id),
             seq.state.decode_execution_plus_preemption_time_normalized,
         )
+        self.seq_metrics_histogram[
+            SequenceMetricsHistogram.REQUEST_PREFILL_E2E_DEADLINE
+        ].put(
+            self._get_seq_id(seq.seq_id),
+            seq.prefill_e2e_time_deadline if seq.prefill_e2e_time_deadline is not None else float("nan")
+        )
+
+        self.seq_metrics_histogram[
+            SequenceMetricsHistogram.REQUEST_IS_STRICT_PREFILL
+        ].put(
+            self._get_seq_id(seq.seq_id),
+            int(seq.is_strict_prefill_e2e_time) if seq.is_strict_prefill_e2e_time is not None else float("nan"),
+        )
+
 
     def _update_per_token_execution_times(
         self,

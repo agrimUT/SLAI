@@ -84,9 +84,9 @@ class ExperimentalScheduler(BaseScheduler):
         return getattr(seq, "time_between_tokens", None) or self.time_between_tokens
 
     def _slack(self, seq, now):
-        prefill_deadline = 2
-        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
-        #est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
+        prefill_deadline = seq.prefill_e2e_time_deadline
+        #est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._mean_batch_dur)
+        est_prefill = ceil(seq.get_prompt_len() / self.token_budget) * max(1e-6, self._max_batch_dur)
         waiting     = now - seq.arrival_time
         return prefill_deadline - est_prefill - waiting
     

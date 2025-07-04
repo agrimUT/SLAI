@@ -1,4 +1,5 @@
 from typing import List
+from math import ceil
 
 from sarathi.benchmark.entities import Request
 from sarathi.benchmark.request_generator.base_request_generator import (
@@ -102,14 +103,22 @@ class SyntheticRequestGenerator(BaseRequestGenerator):
         prob   = getattr(self._config, "hetero_tbt_prob",   0.0)
         strict = getattr(self._config, "hetero_strict_tbt", 0.15)
         relaxed= getattr(self._config, "hetero_relaxed_tbt",0.15)
-        hmg = getattr(self._config, "tbt-slo-value", 0.2)
+        pf_strict = getattr(self._config, "ttft_prefactor_strict", 5.0)
+        pf_relaxed= getattr(self._config, "ttft_prefactor_relaxed",10.0)
+        max_tokens = getattr(self._config, "max_tokens_in_batch", 512)
+        base_batch_latency = getattr(self._config, "ttft_base_batch_latency_s", 0.07)
+        hmg = getattr(self._config, "tbt_slo_value", 0.2)
         if prob > 0:                          
             import numpy as np
             rng = np.random.default_rng(self._seed)
             for req in requests:
                 is_strict = rng.random() < prob
+                prefactor = pf_strict if is_strict else pf_relaxed
+                deadline_sec = prefactor * ceil(req.num_prefill_tokens / max_tokens) * base_batch_latency # prefactor captures the user class we are serving, next we count the number of batches needed, then multiply with the average batch execution time
                 req._time_between_tokens = strict if is_strict else relaxed
                 req._is_strict_tbt       = is_strict 
+                req._is_strict_prefill_e2e_time = is_strict
+                req._prefill_e2e_time_deadline = deadline_sec
         else: 
             for req in requests:
                 req._time_between_tokens = hmg

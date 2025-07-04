@@ -30,6 +30,8 @@ class Sequence:
         sampling_params: SamplingParams,
         time_between_tokens: Optional[float] = None, 
         is_strict_tbt: Optional[bool] = None,
+        prefill_e2e_time_deadline: Optional[float] = None,
+        is_strict_prefill_e2e_time: Optional[bool] = None,  
     ) -> None:
         self.seq_id = seq_id
         self.prompt = prompt
@@ -41,6 +43,8 @@ class Sequence:
         self.last_schedulable_time = float("inf")
         self.time_between_tokens = time_between_tokens
         self.is_strict_tbt = is_strict_tbt 
+        self.prefill_e2e_time_deadline = prefill_e2e_time_deadline
+        self.is_strict_prefill_e2e_time = is_strict_prefill_e2e_time
 
         self.output_token_ids: List[int] = []
         self.prompt_tokens_processed = 0
