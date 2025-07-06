@@ -37,10 +37,12 @@ PATH_LABEL_OVERRIDES = {
 # ───────────────────────────────────────────────────────────────
 _marker_cycle = ['o', 's', '^', 'D', 'v', '<', '>', 'P', 'X', '*']
 _default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+LABELS_IN_ORDER = list(PATH_LABEL_OVERRIDES.values())
 _marker_iter = itertools.cycle(_marker_cycle)
 _color_iter  = itertools.cycle(_default_colors)
 
-LABEL2MARKER, LABEL2COLOR = {}, {}
+LABEL2MARKER = {lbl: next(_marker_iter) for lbl in LABELS_IN_ORDER}
+LABEL2COLOR  = {lbl: next(_color_iter)  for lbl in LABELS_IN_ORDER}
 def marker_for(lbl):                # one marker per *scheme*
     if lbl not in LABEL2MARKER:
         LABEL2MARKER[lbl] = next(_marker_iter)
@@ -136,7 +138,6 @@ def plot_all(qps_map, out_dir: Path):
                 _plot_series(ax, x, y_mean,
                              c=color_for(lbl),
                              m=marker_for(lbl),
-                             filled=(flavour=="strict"),
                              lbl=lbl)
             ax.set_xlabel("Prefill length (tokens)")
             ax.set_ylabel("Mean TTFT (s)")
@@ -151,7 +152,6 @@ def plot_all(qps_map, out_dir: Path):
                 _plot_series(ax2, x, y_cnt,
                              c=color_for(lbl),
                              m=marker_for(lbl),
-                             filled=(flavour=="strict"),
                              lbl=lbl)
             ax2.set_xlabel("Prefill length (tokens)")
             ax2.set_ylabel("# completed jobs")
