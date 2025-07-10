@@ -24,12 +24,16 @@ import pandas as pd
 # 1. path → friendly label  (unchanged – add your overrides here)
 # ───────────────────────────────────────────────────────────────
 PATH_LABEL_OVERRIDES = {
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/339e2590": 
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/339e2590": 
         r"sarathi-serve ($\tau = 512,\ \alpha = 128$)",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/a63e0e4b":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/a63e0e4b":
         r"experimental (bucket sorting)", 
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/a63e0e4b":
-        r"experimental (shortest job first)",
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/a63e0e4b":
+        r"experimental (shortest)",
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20_slack/runs/a63e0e4b":
+        r"experimental (slack)",
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/1fa6391d":
+        r"last-minute", 
 }
 
 # ───────────────────────────────────────────────────────────────
@@ -143,7 +147,7 @@ def plot_all(qps_map, out_dir: Path):
             ax.set_ylabel("Mean TTFT (s)")
             ax.set_title(f"Mean TTFT vs prefill length ({flavour}) — QPS {qps}")
             ax.grid(True); ax.legend(); fig.tight_layout()
-            pdf = out_dir / f"mean_ttft_vs_prefill_len_{flavour}_qps{qps}.pdf"
+            pdf = out_dir / f"mean_ttft_vs_prefill_len_{flavour}_qps{qps}_p50per.pdf"
             fig.savefig(pdf); plt.close(fig); print("Wrote", pdf)
 
             # ── bucket counts plot ───────────────────────────────
@@ -158,7 +162,7 @@ def plot_all(qps_map, out_dir: Path):
             ax2.set_title(f"Jobs completed per prefill length ({flavour}) — "
                           f"QPS {qps}")
             ax2.grid(True); ax2.legend(); fig2.tight_layout()
-            pdf2 = out_dir / f"num_completed_vs_prefill_len_{flavour}_qps{qps}.pdf"
+            pdf2 = out_dir / f"num_completed_vs_prefill_len_{flavour}_qps{qps}_p50per.pdf"
             fig2.savefig(pdf2); plt.close(fig2); print("Wrote", pdf2)
 
 # ───────────────────────────────────────────────────────────────

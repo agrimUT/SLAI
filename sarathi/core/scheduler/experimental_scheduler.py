@@ -94,6 +94,10 @@ class ExperimentalScheduler(BaseScheduler):
         """Return the length of the sequence in tokens."""
         return seq.get_prompt_len()
     
+    def _deadline(self, seq: Sequence) -> float:
+        """Return the prefill e2e time deadline for the sequence."""
+        return seq.prefill_e2e_time_deadline
+    
     def _post_batch_processing(self) -> None:
         # self.running here represents the previous batch that was processed - we are going to construct our decode queue and paused prefill jobs from this
         if(len(self.running) == 0):
@@ -192,21 +196,23 @@ class ExperimentalScheduler(BaseScheduler):
         k = 0
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
+        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (self._deadline(seq), self._length(seq)))
         # if k:  # nothing arrived → nothing to do
         #     arrived = self.waiting[:k]
             
-            # # Build a list of (sort_key, seq) tuples in one pass.
-            # keyed: list[tuple[tuple[int, float], Sequence]] = []
-            # for seq in arrived:
-            #     slack = self._slack(seq, now)
-            #     if slack >= 0:
-            #         keyed.append(((0, slack), seq))            # bucket 0 → feasible
-            #     else:
-            #         keyed.append(((1, self._length(seq)), seq))  # bucket 1 → overdue
+        #     # Build a list of (sort_key, seq) tuples in one pass.
+        #     keyed: list[tuple[tuple[int, float], Sequence]] = []
+        #     for seq in arrived:
+        #         slack = self._slack(seq, now)
+        #         if slack >= 0:
+        #             keyed.append(((0, slack), seq))            # bucket 0 → feasible
+        #         else:
+        #             keyed.append(((1, self._length(seq)), seq))  # bucket 1 → overdue
 
-            # keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
-            # self.waiting[:k] = [seq for _, seq in keyed]
+        #     keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
+        #     self.waiting[:k] = [seq for _, seq in keyed]
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]
