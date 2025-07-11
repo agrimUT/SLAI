@@ -19,7 +19,7 @@ schedulers:
   #   time_between_tokens: 0.2 
   #   process_smallest_prefill: false
   #   capacity: 2 
-  - name: experimental_scheduler_earliest_deadline_first
+  - name: experimental_scheduler_shortest_job_first
     scheduler: experimental_scheduler
     token_budget: 512
     batch_size: 128

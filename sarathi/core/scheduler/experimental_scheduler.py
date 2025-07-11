@@ -197,8 +197,8 @@ class ExperimentalScheduler(BaseScheduler):
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
-        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (self._deadline(seq), self._length(seq)))
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (self._deadline(seq), self._length(seq)))
         # if k:  # nothing arrived → nothing to do
         #     arrived = self.waiting[:k]
             
