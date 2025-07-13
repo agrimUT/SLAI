@@ -96,7 +96,7 @@ class ExperimentalScheduler(BaseScheduler):
     
     def _deadline(self, seq: Sequence) -> float:
         """Return the prefill e2e time deadline for the sequence."""
-        return seq.prefill_e2e_time_deadline
+        return seq.arrival_time + seq.prefill_e2e_time_deadline
     
     def _post_batch_processing(self) -> None:
         # self.running here represents the previous batch that was processed - we are going to construct our decode queue and paused prefill jobs from this
@@ -196,9 +196,9 @@ class ExperimentalScheduler(BaseScheduler):
         k = 0
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
+        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
-        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: (self._deadline(seq), self._length(seq)))
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._deadline(seq))
         # if k:  # nothing arrived → nothing to do
         #     arrived = self.waiting[:k]
             
