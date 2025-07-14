@@ -118,8 +118,8 @@ class SyntheticRequestGenerator(BaseRequestGenerator):
                 req._time_between_tokens = strict if is_strict else relaxed
                 req._is_strict_tbt       = is_strict 
                 req._is_strict_prefill_e2e_time = is_strict
-                #req._prefill_e2e_time_deadline = deadline_sec
-                req._prefill_e2e_time_deadline = 2 if is_strict else 4 # this is a hack to make sure that the prefill e2e time deadline is not too tight, we will fix this later
+                req._prefill_e2e_time_deadline = deadline_sec
+                #req._prefill_e2e_time_deadline = 2 if is_strict else 4 # this is a hack to make sure that the prefill e2e time deadline is not too tight, we will fix this later
         else: 
             for req in requests:
                 req._time_between_tokens = hmg
