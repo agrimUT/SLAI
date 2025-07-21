@@ -109,6 +109,12 @@ class ExperimentalScheduler(BaseScheduler):
             elif seq.prompt_processing_finished and not seq.is_finished(): 
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
+                perecent_gpu_memory_used =  self.block_manager.get_num_used_gpu_blocks() / self.block_manager.num_total_gpu_blocks
+                if(perecent_gpu_memory_used >= 0.96):
+                    self.offset = 10
+                elif(perecent_gpu_memory_used <= 0.94):
+                    self.offset = 5
+                
                 seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
 
@@ -197,8 +203,8 @@ class ExperimentalScheduler(BaseScheduler):
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
-        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._deadline(seq))
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._deadline(seq))
         # if k:  # nothing arrived → nothing to do
         #     arrived = self.waiting[:k]
             
