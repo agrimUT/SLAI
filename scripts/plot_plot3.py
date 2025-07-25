@@ -38,7 +38,7 @@ plt.bar(
 
 # ----- axis & style -----
 plt.xticks(x_pos, df["N_decode"].astype(str), fontweight="bold")
-plt.xlabel("Number of active tasks", fontweight="bold")
+plt.xlabel("Number of active requests", fontweight="bold")
 plt.ylabel("GPU memory utilization (%)", fontweight="bold")
 
 plt.grid(axis="y", ls="--", alpha=.4)

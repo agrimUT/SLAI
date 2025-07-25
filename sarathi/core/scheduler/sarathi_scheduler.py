@@ -190,10 +190,10 @@ class SarathiScheduler(BaseScheduler):
         # sequence groups are added to the front and the new sequence groups
         # are added to the back.
 
-        k = 0
-        while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
-            k += 1
-        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        # k = 0
+        # while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
+        #     k += 1
+        # self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
 
         while self.waiting:
             seq = self.waiting[0]

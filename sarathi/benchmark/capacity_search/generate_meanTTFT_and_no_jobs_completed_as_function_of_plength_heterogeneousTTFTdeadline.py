@@ -34,17 +34,17 @@ plt.rcParams.update({
 # 1. path → friendly label  (override paths here)
 # ───────────────────────────────────────────────────────────────
 PATH_LABEL_OVERRIDES = {
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/339e2590":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/339e2590":
         r"Sarathi-serve (FCFS)",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/a63e0e4b":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/a63e0e4b":
         r"SLAI (SPF, fixed offset)",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/1fa6391d":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/1fa6391d":
         r"SLAI (FCFS, fixed offset)",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20/runs/81067519":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/81067519":
         r"vLLM",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/339e2590":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20_shortest/runs/339e2590":
         r"Sarathi-serve (SPF)",
-    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p50per_100ms_500ms_TTFT_prefactor_10_20_shortest_dynamic_offset_5_10_94_96/runs/a63e0e4b":
+    "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20_shortest_dynamic_offset_5_10_96/runs/a63e0e4b":
         r"SLAI (SPF, dynamic offset)",
 }
 
@@ -153,12 +153,12 @@ def plot_all(qps_map, out_dir: Path):
             for lbl, x, y_mean, _ in series:
                 _plot(ax, x, y_mean, lbl=lbl,
                       col=color_for(lbl), m=marker_for(lbl))
-            ax.set_xlabel("Prefill length (tokens)")
+            ax.set_xlabel("Prompt length (tokens)")
             ax.set_ylabel("Mean TTFT (s)")
             ax.grid(True);  ax.legend(frameon=True, framealpha=0.5)
             fig.tight_layout()
             fig.savefig(out_dir /
-                        f"mean_ttft_vs_prefill_len_{flavour}_qps_{qps}_p50per.pdf")
+                        f"mean_ttft_vs_prefill_len_{flavour}_qps_{qps}_p5per.pdf")
             plt.close(fig)
 
             # completed-jobs plot (per flavour)
@@ -166,12 +166,12 @@ def plot_all(qps_map, out_dir: Path):
             for lbl, x, _, y_cnt in series:
                 _plot(ax2, x, y_cnt, lbl=lbl,
                       col=color_for(lbl), m=marker_for(lbl))
-            ax2.set_xlabel("Prefill length (tokens)")
+            ax2.set_xlabel("Prompt length (tokens)")
             ax2.set_ylabel("Number of requests completed")
             ax2.grid(True);  ax2.legend(frameon=True, framealpha=0.5)
             fig2.tight_layout()
             fig2.savefig(out_dir /
-                         f"num_completed_vs_prefill_len_{flavour}_qps_{qps}_p50per.pdf")
+                         f"num_completed_vs_prefill_len_{flavour}_qps_{qps}_p5per.pdf")
             plt.close(fig2)
 
         # ────────────────────────────────────────────────────────────
@@ -206,13 +206,13 @@ def plot_all(qps_map, out_dir: Path):
         for lbl, x, y_cnt in combined_series:
             _plot(axC, x, y_cnt, lbl=lbl,
                   col=color_for(lbl), m=marker_for(lbl))
-        axC.set_xlabel("Prefill length (tokens)")
+        axC.set_xlabel("Prompt length (tokens)")
         axC.set_ylabel("Number of requests served")
         axC.grid(True);  
         # axC.legend(frameon=True, framealpha=0.5)
         figC.tight_layout()
         figC.savefig(out_dir /
-                     f"num_completed_vs_prefill_len_all_qps_{qps}_p50per.pdf")
+                     f"num_completed_vs_prefill_len_all_qps_{qps}_p5per.pdf")
         plt.close(figC)
 
 

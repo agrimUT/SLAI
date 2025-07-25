@@ -53,7 +53,7 @@ plt.bar(
 
 # ----- axis & style -----
 plt.xticks(x_pos, agg["N_decode"].astype(str), fontweight="bold")
-plt.xlabel("Number of decodes in the batch", fontweight="bold")
+plt.xlabel("Number of decode-iterations in the batch", fontweight="bold")
 plt.ylabel("Batch execution time (ms)", fontweight="bold")
 
 plt.grid(axis="y", ls="--", alpha=.4)
