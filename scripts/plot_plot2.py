@@ -14,6 +14,16 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    "font.size"       : 14,   # base size for everything
+    "axes.labelsize"  : 14,   # axis labels
+    "axes.titlesize"  : 16,   # suptitle
+    "xtick.labelsize" : 12,
+    "ytick.labelsize" : 12,
+    "legend.fontsize" : 12,
+})
+
+
 # ------------------------------------------------------------------ paths
 CSV_IN  = pathlib.Path("/home/ab73456/sarathi-serve/benchmark_output/plot2/summary.csv")
 OUT_DIR = pathlib.Path("/home/ab73456/sarathi-serve/scripts")

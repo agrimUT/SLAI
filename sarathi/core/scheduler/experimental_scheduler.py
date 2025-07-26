@@ -110,14 +110,10 @@ class ExperimentalScheduler(BaseScheduler):
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
                 perecent_gpu_memory_used =  self.block_manager.get_num_used_gpu_blocks() / self.block_manager.num_total_gpu_blocks
-                # if(perecent_gpu_memory_used >= 0.96):
-                #     self.offset = 10
-                # elif(perecent_gpu_memory_used <= 0.94):
-                #     self.offset = 5
-                # if(perecent_gpu_memory_used >= 0.96):
-                #     self.offset = 10
-                # else:
-                #     self.offset = 5
+                if(perecent_gpu_memory_used >= 0.96):
+                    self.offset = 10
+                else:
+                    self.offset = 5
                 
                 seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
@@ -203,9 +199,9 @@ class ExperimentalScheduler(BaseScheduler):
         #   1. Jobs with    slack ≥ 0  come first, ascending by slack.
         #   2. Jobs with    slack <  0  follow,    ascending by prompt length.
         # ------------------------------------------------------------
-        # k = 0
-        # while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
-        #     k += 1
+        k = 0
+        while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
+            k += 1
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._deadline(seq))
@@ -223,6 +219,19 @@ class ExperimentalScheduler(BaseScheduler):
 
         #     keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
         #     self.waiting[:k] = [seq for _, seq in keyed]
+        if k:  # nothing arrived → nothing to do
+            arrived = self.waiting[:k]
+            
+            # Build a list of (sort_key, seq) tuples in one pass.
+            keyed: list[tuple[tuple[int, float], Sequence]] = []
+            for seq in arrived:
+                if seq.is_strict_tbt:
+                    keyed.append(((0, self._length(seq)), seq))            
+                else:
+                    keyed.append(((1, self._length(seq)), seq))  
+
+            keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
+            self.waiting[:k] = [seq for _, seq in keyed]
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]

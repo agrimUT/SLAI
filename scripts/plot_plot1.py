@@ -11,6 +11,15 @@ import pathlib
 import pandas as pd
 import matplotlib.pyplot as plt
 
+plt.rcParams.update({
+    "font.size"       : 14,   # base size for everything
+    "axes.labelsize"  : 14,   # axis labels
+    "axes.titlesize"  : 16,   # suptitle
+    "xtick.labelsize" : 12,
+    "ytick.labelsize" : 12,
+    "legend.fontsize" : 12,
+})
+
 ROOT = pathlib.Path("/home/ab73456/sarathi-serve/benchmark_output/plot1")
 records = []
 
@@ -62,17 +71,19 @@ fig, ax1 = plt.subplots(figsize=(6.5, 4))
 ax1.plot(df.chunk, df.ttft_ms, 'o-', color='tab:blue')
 ax1.set_xlabel("Token budget", fontweight="bold")
 ax1.set_ylabel("Median TTFT (ms)", fontweight="bold", color='tab:blue')
+ax1.tick_params(axis='x', width=0)                       # no tick marks
 ax1.tick_params(axis='y', labelcolor='tab:blue', width=0)
+
 ax1.grid(ls='--', alpha=.4)
 
 ax2 = ax1.twinx()
 ax2.plot(df.chunk, df.batch_ms, 's--', color='tab:red')
-ax2.set_ylabel("Mean batch execution time (ms)", fontweight="bold", color='tab:red')
+ax2.set_ylabel("Mean batch\nexecution time (ms)",
+               fontweight="bold", color='tab:red')
 ax2.tick_params(axis='y', labelcolor='tab:red', width=0)
 
 fig.tight_layout()
-fig.suptitle("Mistral-7B • Token Budget vs TTFT & Batch Time", y=1.05, fontweight="bold")
+#fig.suptitle("Mistral-7B • Token Budget vs TTFT & Batch Time",
+#             y=1.03, fontweight="bold", fontsize=16)
 
 fig.savefig(FIG_OUT, dpi=1200)
-print("Figure saved to:", FIG_OUT)
-plt.show()

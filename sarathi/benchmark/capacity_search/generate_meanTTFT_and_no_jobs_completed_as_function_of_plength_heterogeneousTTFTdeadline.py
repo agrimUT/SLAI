@@ -2,11 +2,14 @@
 """
 Plots (per QPS, per scheduler):
 
-  • mean TTFT (prefill_e2e_time) vs. prefill length
-  • number of requests completed in each prefill-length bucket
+  • mean TTFT (prefill_e2e_time) vs. prompt length
+      – strict-TTFT requests      (is_strict_prefill == 1)
+      – relaxed-TTFT requests     (is_strict_prefill == 0)
+      – **all requests combined** (new)
 
-separately for strict-TTFT and relaxed-TTFT requests
-('is_strict_prefill' column).
+  • number of requests completed in each prompt-length bucket
+      – separate strict / relaxed curves
+      – combined (strict+relaxed) curve
 
 Usage
 -----
@@ -22,7 +25,7 @@ import pandas as pd
 
 # ──────────────────────────── style tweaks ────────────────────────────
 plt.rcParams.update({
-    "font.size"        : 16,   # base font
+    "font.size"        : 16,
     "axes.labelsize"   : 16,
     "xtick.labelsize"  : 14,
     "ytick.labelsize"  : 14,
@@ -60,10 +63,8 @@ _color_iter  = itertools.cycle(_default_colors)
 
 LABEL2MARKER = {lbl: next(_marker_iter) for lbl in LABELS_IN_ORDER}
 LABEL2COLOR  = {lbl: next(_color_iter)  for lbl in LABELS_IN_ORDER}
-def marker_for(lbl):   # unique marker per label
-    return LABEL2MARKER.setdefault(lbl, next(_marker_iter))
-def color_for(lbl):
-    return LABEL2COLOR.setdefault(lbl, next(_color_iter))
+def marker_for(lbl):   return LABEL2MARKER.setdefault(lbl, next(_marker_iter))
+def color_for(lbl):    return LABEL2COLOR.setdefault(lbl, next(_color_iter))
 
 # ───────────────────────────────────────────────────────────────
 # 3. helpers
@@ -74,7 +75,7 @@ def make_label(run_dir: Path) -> str:
 def read_any_csv(p): return pd.read_csv(p, sep=None, engine="python")
 
 def concat_metrics(qps_dir: Path) -> pd.DataFrame:
-    patt = qps_dir / "*" / "replica_*" / "sequence_metrics.csv"
+    patt  = qps_dir / "*" / "replica_*" / "sequence_metrics.csv"
     files = glob.glob(str(patt))
     if not files:
         raise FileNotFoundError(f"No sequence_metrics.csv under {qps_dir}")
@@ -95,8 +96,12 @@ def _bucketed(df: pd.DataFrame,
         counts.append(len(sub))
     return np.asarray(centres), np.asarray(means), np.asarray(counts)
 
-def bucket_stats_by_flag(df: pd.DataFrame, flag_val: int, **kw):
-    sub = df[df["is_strict_prefill"] == flag_val]
+def bucket_stats(df: pd.DataFrame, flag_val: int | None, **kw):
+    """flag_val = 1 → strict, 0 → relaxed, None → all rows."""
+    if flag_val is None:
+        sub = df
+    else:
+        sub = df[df["is_strict_prefill"] == flag_val]
     if sub.empty:
         return np.array([]), np.array([]), np.array([])
     return _bucketed(sub, **kw)
@@ -107,8 +112,8 @@ def bucket_stats_by_flag(df: pd.DataFrame, flag_val: int, **kw):
 def collect_data(run_dirs):
     """
     Returns:
-        qps -> {'strict':  [(label,x,mean,count), ...],
-                'relaxed': [(label,x,mean,count), ...]}
+        qps → {flavour → [(label,x,mean,count), ...]}
+        where flavour ∈ {"strict", "relaxed", "all"}
     """
     out: dict[str, dict[str, list]] = {}
     for rd in run_dirs:
@@ -117,8 +122,8 @@ def collect_data(run_dirs):
             qps = qps_dir.name
             try:
                 df = concat_metrics(qps_dir)
-                for flavour, flag in (("strict", 1), ("relaxed", 0)):
-                    x, y_mean, y_cnt = bucket_stats_by_flag(df, flag)
+                for flavour, flag in (("strict", 1), ("relaxed", 0), ("all", None)):
+                    x, y_mean, y_cnt = bucket_stats(df, flag)
                     if x.size:
                         out.setdefault(qps, {}).setdefault(flavour, [])\
                            .append((label, x, y_mean, y_cnt))
@@ -130,9 +135,8 @@ def collect_data(run_dirs):
 # 5. plotting
 # ───────────────────────────────────────────────────────────────
 def _plot(ax, x, y, *, lbl, col, m):
-    face = col
     ax.plot(x, y, label=lbl, color=col,
-            marker=m, markerfacecolor=face,
+            marker=m, markerfacecolor=col,
             markeredgecolor=col, markersize=8, linewidth=1.4)
 
 def plot_all(qps_map, out_dir: Path):
@@ -140,15 +144,14 @@ def plot_all(qps_map, out_dir: Path):
 
     for qps, flavour_map in qps_map.items():
         # ────────────────────────────────────────────────────────────
-        # 5-a / 5-b  EXISTING PER-FLAVOUR FIGURES (unchanged)
+        # 5-a  MEAN-TTFT vs prompt length  (strict / relaxed / all)
         # ────────────────────────────────────────────────────────────
-        for flavour in ("strict", "relaxed"):
+        for flavour in ("strict", "relaxed", "all"):
             if flavour not in flavour_map:
                 continue
             series = flavour_map[flavour]
-            series.sort(key=lambda t: t[0])          # stable order
+            series.sort(key=lambda t: t[0])          # stable legend order
 
-            # mean-TTFT plot
             fig, ax = plt.subplots()
             for lbl, x, y_mean, _ in series:
                 _plot(ax, x, y_mean, lbl=lbl,
@@ -161,13 +164,21 @@ def plot_all(qps_map, out_dir: Path):
                         f"mean_ttft_vs_prefill_len_{flavour}_qps_{qps}_p5per.pdf")
             plt.close(fig)
 
-            # completed-jobs plot (per flavour)
+        # ────────────────────────────────────────────────────────────
+        # 5-b  JOB COUNT per flavour (strict / relaxed)
+        # ────────────────────────────────────────────────────────────
+        for flavour in ("strict", "relaxed"):
+            if flavour not in flavour_map:
+                continue
+            series = flavour_map[flavour]
+
             fig2, ax2 = plt.subplots()
             for lbl, x, _, y_cnt in series:
                 _plot(ax2, x, y_cnt, lbl=lbl,
                       col=color_for(lbl), m=marker_for(lbl))
             ax2.set_xlabel("Prompt length (tokens)")
             ax2.set_ylabel("Number of requests completed")
+            ax2.set_title(f"Requests Completed – {flavour} – QPS {qps}")
             ax2.grid(True);  ax2.legend(frameon=True, framealpha=0.5)
             fig2.tight_layout()
             fig2.savefig(out_dir /
@@ -175,12 +186,11 @@ def plot_all(qps_map, out_dir: Path):
             plt.close(fig2)
 
         # ────────────────────────────────────────────────────────────
-        # 5-c  NEW: STRICT + RELAXED COUNT COMBINED
+        # 5-c  STRICT+RELAXED COUNT COMBINED  (unchanged)
         # ────────────────────────────────────────────────────────────
         if not {"strict", "relaxed"} <= flavour_map.keys():
-            continue          # need both to build the combined curves
+            continue  # need both to build combined curves
 
-        # Helper:   flavour → {label → (x-array, y-cnt-array)}
         def _to_dict(series):
             return {lbl: (x, y_cnt) for lbl, x, _, y_cnt in series}
 
@@ -189,32 +199,28 @@ def plot_all(qps_map, out_dir: Path):
 
         combined_series = []
         for lbl in sorted(set(strict_d) | set(relaxed_d)):
-            # merge counts bucket-wise
             bucket_counts = {}
             for x_arr, y_arr in (strict_d.get(lbl, ([], [])),
                                  relaxed_d.get(lbl, ([], []))):
                 for x_i, cnt_i in zip(x_arr, y_arr):
                     bucket_counts[x_i] = bucket_counts.get(x_i, 0) + cnt_i
 
-            # convert back to sorted arrays
-            x_all   = np.array(sorted(bucket_counts))
-            y_all   = np.array([bucket_counts[xi] for xi in x_all])
+            x_all = np.array(sorted(bucket_counts))
+            y_all = np.array([bucket_counts[xi] for xi in x_all])
             combined_series.append((lbl, x_all, y_all))
 
-        # plotting
         figC, axC = plt.subplots()
         for lbl, x, y_cnt in combined_series:
             _plot(axC, x, y_cnt, lbl=lbl,
                   col=color_for(lbl), m=marker_for(lbl))
         axC.set_xlabel("Prompt length (tokens)")
         axC.set_ylabel("Number of requests served")
-        axC.grid(True);  
-        # axC.legend(frameon=True, framealpha=0.5)
+        axC.set_title(f"Requests Served – strict+relaxed – QPS {qps}")
+        axC.grid(True)
         figC.tight_layout()
         figC.savefig(out_dir /
                      f"num_completed_vs_prefill_len_all_qps_{qps}_p5per.pdf")
         plt.close(figC)
-
 
 # ───────────────────────────────────────────────────────────────
 def main():
@@ -226,7 +232,8 @@ def main():
     runs = [Path(p).expanduser() for p in args.run_dirs]
     qps_data = collect_data(runs)
     if not qps_data:
-        print("No data found – nothing plotted."); return
+        print("No data found – nothing plotted.")
+        return
     plot_all(qps_data, Path(args.out_dir).expanduser())
 
 if __name__ == "__main__":
