@@ -273,39 +273,85 @@ class ExperimentalScheduler(BaseScheduler):
             )
             running.append(seq)
         # now go through the remaining decode queue and add them to batch if there is space 
-        max_total_decodes_allowed = self.limit_total_decodes 
-        while self.decode_queue and num_batched_tokens < self.token_budget and (noncritical_decodes + critical_decodes) < max_total_decodes_allowed:
-            seq = heapq.heappop(self.decode_queue)[2]
-            if now < seq.last_schedulable_time:
-                noncritical_decodes += 1
-            if not seq.is_paused():
-                running.append(seq)
-                continue
-            while not self.block_manager.can_append_slot():
-                if self.paused_prefills:
-                    # Preempt the lowest-priority sequence groups.
-                    victim_seq = self.paused_prefills.pop(-1)
-                    self._preempt(victim_seq)
-                    self._active_seq_ids.discard(victim_seq.seq_id)
-                    preempted_seq_ids.append(victim_seq.seq_id)
-                    preempted_seq_prefill += 1
+        # max_total_decodes_allowed = self.limit_total_decodes 
+        # while self.decode_queue and num_batched_tokens < self.token_budget and (noncritical_decodes + critical_decodes) < max_total_decodes_allowed:
+        #     seq = heapq.heappop(self.decode_queue)[2]
+        #     if now < seq.last_schedulable_time:
+        #         noncritical_decodes += 1
+        #     if not seq.is_paused():
+        #         running.append(seq)
+        #         continue
+        #     while not self.block_manager.can_append_slot():
+        #         if self.paused_prefills:
+        #             # Preempt the lowest-priority sequence groups.
+        #             victim_seq = self.paused_prefills.pop(-1)
+        #             self._preempt(victim_seq)
+        #             self._active_seq_ids.discard(victim_seq.seq_id)
+        #             preempted_seq_ids.append(victim_seq.seq_id)
+        #             preempted_seq_prefill += 1
+        #         else:
+        #             noncritical_decodes -= 1
+        #             self._preempt(seq)
+        #             self._active_seq_ids.discard(seq.seq_id)
+        #             preempted_seq_ids.append(seq.seq_id)
+        #             preempted_seq_decode += 1
+        #             break 
+        #     else:
+        #         # Append new slots to the sequence group.
+        #         self._append_slot(seq)
+        #         if seq.seq_id not in self._active_seq_ids:  
+        #             self._active_seq_ids.add(seq.seq_id)
+        #         running.append(seq)
+        #         num_batched_tokens += 1
+        #         scheduled_seq_metadata_list.append(
+        #             SequenceScheduleMetadata.from_sequence(seq)
+        #         )
+
+        # Non-critical decodes (longest-first)
+        max_total_decodes_allowed = self.limit_total_decodes
+
+        if self.decode_queue and num_batched_tokens < self.token_budget:
+            tmp_heap: list[tuple[int, float, float, Sequence]] = []
+            while self.decode_queue:
+                lst, arrival, seq = heapq.heappop(self.decode_queue)
+                heapq.heappush(tmp_heap, (-seq.get_len(), lst, arrival, seq))
+            while (tmp_heap and num_batched_tokens < self.token_budget and (noncritical_decodes + critical_decodes) < max_total_decodes_allowed):
+                _, lst, arrival, seq = heapq.heappop(tmp_heap)
+
+                if now < seq.last_schedulable_time:
+                    noncritical_decodes += 1
+
+                if not seq.is_paused():
+                    running.append(seq)
+                    continue
+
+                while not self.block_manager.can_append_slot():
+                    if self.paused_prefills:
+                        victim_seq = self.paused_prefills.pop(-1)
+                        self._preempt(victim_seq)
+                        self._active_seq_ids.discard(victim_seq.seq_id)
+                        preempted_seq_ids.append(victim_seq.seq_id)
+                        preempted_seq_prefill += 1
+                    else:
+                        noncritical_decodes -= 1
+                        self._preempt(seq)
+                        self._active_seq_ids.discard(seq.seq_id)
+                        preempted_seq_ids.append(seq.seq_id)
+                        preempted_seq_decode += 1
+                        break
                 else:
-                    noncritical_decodes -= 1
-                    self._preempt(seq)
-                    self._active_seq_ids.discard(seq.seq_id)
-                    preempted_seq_ids.append(seq.seq_id)
-                    preempted_seq_decode += 1
-                    break 
-            else:
-                # Append new slots to the sequence group.
-                self._append_slot(seq)
-                if seq.seq_id not in self._active_seq_ids:  
-                    self._active_seq_ids.add(seq.seq_id)
-                running.append(seq)
-                num_batched_tokens += 1
-                scheduled_seq_metadata_list.append(
-                    SequenceScheduleMetadata.from_sequence(seq)
-                )
+                    self._append_slot(seq)
+                    if seq.seq_id not in self._active_seq_ids:
+                        self._active_seq_ids.add(seq.seq_id)
+                    running.append(seq)
+                    num_batched_tokens += 1
+                    scheduled_seq_metadata_list.append(
+                        SequenceScheduleMetadata.from_sequence(seq)
+                    )
+
+            for _, lst, arrival, seq in tmp_heap:
+                heapq.heappush(self.decode_queue, (lst, arrival, seq))
+
 
         assert self.num_active_seqs <= self.scheduler_config.max_num_seqs, \
             f"active={self.num_active_seqs} exceeds cap {self.scheduler_config.max_num_seqs}"
