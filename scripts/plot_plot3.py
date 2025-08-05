@@ -15,11 +15,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({
-    "font.size"       : 14,   # base size for everything
-    "axes.labelsize"  : 14,   # axis labels
+    "font.size"       : 20,   # base size for everything
+    "axes.labelsize"  : 22,   # axis labels
     "axes.titlesize"  : 16,   # suptitle
-    "xtick.labelsize" : 12,
-    "ytick.labelsize" : 12,
+    "xtick.labelsize" : 14,
+    "ytick.labelsize" : 14,
     "legend.fontsize" : 12,
 })
 
@@ -48,8 +48,9 @@ plt.bar(
 
 # ----- axis & style -----
 plt.xticks(x_pos, df["N_decode"].astype(str), fontweight="bold")
-plt.xlabel("Number of active requests", fontweight="bold")
-plt.ylabel("GPU memory utilization (%)", fontweight="bold")
+plt.yticks(fontweight="bold")
+plt.xlabel("Number of \n active requests", fontweight="bold")
+plt.ylabel("GPU memory\n utilization (%)", fontweight="bold")
 
 plt.grid(axis="y", ls="--", alpha=.4)
 plt.tight_layout()

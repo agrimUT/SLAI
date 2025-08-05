@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
-Plots (per scheduler):
+Plots (per scheduler)
 
-  • median TTFT as a function of request-rate (QPS)
-    – paying users   : is_strict_prefill == 1
-    – free-tier users: is_strict_prefill == 0
+  • median TTFT vs QPS                     (separate PDFs for paying / free)
+  • 99-th-pct TTFT vs QPS                  (separate PDFs for paying / free)
+  • mean TTFT   vs QPS                     (separate PDFs for paying / free)
 
-Each scheduler/run contributes two curves (strict, relaxed).  
-You can pass multiple run directories to compare schedulers
-(e.g. Sarathi-Serve, SLAI, vLLM) on the same axes.
+    – paying users   : is_strict_prefill == 1  (“strict” requests)
+    – free-tier users: is_strict_prefill == 0  (“relaxed” requests)
 
-Usage
------
-python gen_median_ttft_vs_qps.py --out_dir <OUT_DIR> <RUN1> <RUN2> ...
+Each run directory contributes two curves (paying, free-tier).  
+Pass multiple run dirs to compare schedulers (Sarathi-Serve, SLAI, vLLM, …).
+
+Example
+-------
+python gen_ttft_vs_qps.py --out_dir ~/plots </runs/*/339e2590> ...
 """
 from __future__ import annotations
 import argparse, glob, itertools
@@ -22,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# ──────────────────────────── style tweaks ────────────────────────────
+# ───────────────────────── style tweaks ────────────────────────────
 plt.rcParams.update({
     "font.size"        : 16,
     "axes.labelsize"   : 16,
@@ -32,9 +34,7 @@ plt.rcParams.update({
     "axes.titlesize"   : 16,
 })
 
-# ───────────────────────────────────────────────────────────────
-# 1. path → friendly label  (override here if desired)
-# ───────────────────────────────────────────────────────────────
+# ─────────────────────── 1. path → pretty label ────────────────────
 PATH_LABEL_OVERRIDES = {
     "/home/ab73456/sarathi-serve/heterogeneous_TBT_p5per_100ms_500ms_TTFT_prefactor_10_20/runs/339e2590":
         r"Sarathi-serve (FCFS)",
@@ -52,29 +52,26 @@ PATH_LABEL_OVERRIDES = {
         r"SLAI (SPF with priority, dynamic offset)",
 }
 
-# ───────────────────────────────────────────────────────────────
-# 2. deterministic palette – 1 colour/marker per scheduler
-# ───────────────────────────────────────────────────────────────
-_marker_cycle  = ['o', 's', '^', 'D', 'v', '<', '>', 'P', 'X', '*']
+# ─────────────── 2. deterministic colours / markers ───────────────
+_marker_cycle   = ['o', 's', '^', 'D', 'v', '<', '>', 'P', 'X', '*']
 _default_colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-MAX_QPS = 1.6            
+MAX_QPS         = 1.6          # ignore runs above this load
 
 LABELS_IN_ORDER = list(PATH_LABEL_OVERRIDES.values())
-_marker_iter = itertools.cycle(_marker_cycle)
-_color_iter  = itertools.cycle(_default_colors)
+_marker_iter    = itertools.cycle(_marker_cycle)
+_color_iter     = itertools.cycle(_default_colors)
 
 LABEL2MARKER = {lbl: next(_marker_iter) for lbl in LABELS_IN_ORDER}
 LABEL2COLOR  = {lbl: next(_color_iter)  for lbl in LABELS_IN_ORDER}
-def marker_for(lbl):   return LABEL2MARKER.setdefault(lbl, next(_marker_iter))
-def color_for(lbl):    return LABEL2COLOR.setdefault(lbl, next(_color_iter))
+def marker_for(lbl): return LABEL2MARKER.setdefault(lbl, next(_marker_iter))
+def color_for(lbl):  return LABEL2COLOR.setdefault(lbl, next(_color_iter))
 
-# ───────────────────────────────────────────────────────────────
-# 3. helpers
-# ───────────────────────────────────────────────────────────────
+# ──────────────────────────── helpers ──────────────────────────────
 def make_label(run_dir: Path) -> str:
     return PATH_LABEL_OVERRIDES.get(str(run_dir.resolve()), run_dir.name)
 
-def read_any_csv(p): return pd.read_csv(p, sep=None, engine="python")
+def read_any_csv(p: Path) -> pd.DataFrame:
+    return pd.read_csv(p, sep=None, engine="python")
 
 def concat_metrics(qps_dir: Path) -> pd.DataFrame:
     patt  = qps_dir / "*" / "replica_*" / "sequence_metrics.csv"
@@ -83,54 +80,54 @@ def concat_metrics(qps_dir: Path) -> pd.DataFrame:
         raise FileNotFoundError(f"No sequence_metrics.csv under {qps_dir}")
     return pd.concat([read_any_csv(f) for f in files], ignore_index=True)
 
-# ───────────────────────────────────────────────────────────────
-# 4. collect data
-# ───────────────────────────────────────────────────────────────
+# ───────────────────────── collect data ────────────────────────────
 def collect_data(run_dirs):
     """
     Returns:
-        flag → list[(label, qps_array, median_ttft_array)]
-        where flag = 1 (strict / paying) or 0 (relaxed / free-tier)
+        flag → list[(label, qps[], median[], p99[], mean[])]
+        flag = 1 (paying) or 0 (free-tier)
     """
     out: dict[int, list] = {0: [], 1: []}
 
     for rd in run_dirs:
         label       = make_label(rd)
-        strict_map  = {}   # qps → median
+        strict_map  = {}      # qps → list[ttft]
         relaxed_map = {}
 
         for qps_dir in filter(Path.is_dir, rd.iterdir()):
             try:
                 qps_val = float(qps_dir.name)
             except ValueError:
-                continue  # skip non-numeric dirs
+                continue
             if qps_val > MAX_QPS:
                 continue
+
             try:
                 df = concat_metrics(qps_dir)
             except Exception as e:
                 print(f"Skip {rd} (QPS {qps_dir.name}): {e}")
                 continue
 
-            for flag, target_map in ((1, strict_map), (0, relaxed_map)):
+            for flag, tgt in ((1, strict_map), (0, relaxed_map)):
                 sub = df[df["is_strict_prefill"] == flag]
                 if not sub.empty:
-                    target_map.setdefault(qps_val, []).extend(
+                    tgt.setdefault(qps_val, []).extend(
                         sub["prefill_e2e_time"].values)
 
-        # collapse lists → median
+        # collapse lists → arrays
         for flag, mp in ((1, strict_map), (0, relaxed_map)):
             if not mp:
                 continue
-            qps_sorted  = np.array(sorted(mp))
-            medians     = np.array([np.median(mp[q]) for q in qps_sorted])
-            out[flag].append((label, qps_sorted, medians))
+            qps_sorted = np.array(sorted(mp))
+            medians = np.array([np.median   (mp[q]) for q in qps_sorted])
+            p99s    = np.array([np.percentile(mp[q], 99) for q in qps_sorted])
+            means   = np.array([np.mean     (mp[q]) for q in qps_sorted])
+
+            out[flag].append((label, qps_sorted, medians, p99s, means))
 
     return out
 
-# ───────────────────────────────────────────────────────────────
-# 5. plotting
-# ───────────────────────────────────────────────────────────────
+# ──────────────────────────── plotting ─────────────────────────────
 def _plot(ax, x, y, *, lbl, col, m):
     ax.plot(x, y, label=lbl, color=col,
             marker=m, markerfacecolor=col,
@@ -139,39 +136,63 @@ def _plot(ax, x, y, *, lbl, col, m):
 def plot_all(flag_map, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    FLAG2NAME = {1: "paying (strict-TTFT)", 0: "free-tier (relaxed-TTFT)"}
     for flag, series in flag_map.items():
         if not series:
             continue
-        series.sort(key=lambda t: t[0])  # stable legend order
+        series.sort(key=lambda t: t[0])
+        user_type = "paying users" if flag == 1 else "free-tier users"
 
+        # 5-a median
         fig, ax = plt.subplots()
-        for lbl, x, y in series:
-            _plot(ax, x, y, lbl=lbl,
-                  col=color_for(lbl), m=marker_for(lbl))
-
-        ax.set_xlabel("Requests per second ")
-        if flag == 1:
-            ax.set_ylabel("Median TTFT (s) - paying users")
-        else:
-            ax.set_ylabel("Median TTFT (s) - free-tier users")
-        ax.set_ylim(0, 2)  # fixed y-axis for better comparison
+        for lbl, x, med, *_ in series:
+            _plot(ax, x, med, lbl=lbl, col=color_for(lbl), m=marker_for(lbl))
+        ax.set_xlabel("Requests per second")
+        ax.set_ylabel(f"Median TTFT (s) – {user_type}")
+        ax.set_ylim(0, 2)
         ax.grid(True); ax.legend(frameon=True, framealpha=0.5)
         fig.tight_layout()
         fig.savefig(out_dir / f"median_ttft_vs_qps_flag_{flag}.pdf")
         plt.close(fig)
 
-# ───────────────────────────────────────────────────────────────
+        # 5-b p99
+        fig2, ax2 = plt.subplots()
+        for lbl, x, _, p99, _ in series:
+            _plot(ax2, x, p99, lbl=lbl, col=color_for(lbl), m=marker_for(lbl))
+        ax2.set_xlabel("Requests per second")
+        ax2.set_ylabel(f"99th-pct TTFT (s) – {user_type}")
+        ax2.set_ylim(0, 60)           # adjust to your data
+        ax2.grid(True); ax2.legend(frameon=True, framealpha=0.5)
+        fig2.tight_layout()
+        fig2.savefig(out_dir / f"p99_ttft_vs_qps_flag_{flag}.pdf")
+        plt.close(fig2)
+
+        # 5-c mean
+        fig3, ax3 = plt.subplots()
+        for lbl, x, *rest in series:
+            means = rest[-1]          # last element is mean array
+            _plot(ax3, x, means, lbl=lbl, col=color_for(lbl), m=marker_for(lbl))
+        ax3.set_xlabel("Requests per second")
+        ax3.set_ylabel(f"Mean TTFT (s) – {user_type}")
+        ax3.set_ylim(0, 4)            # tweak if needed
+        ax3.grid(True); ax3.legend(frameon=True, framealpha=0.5)
+        fig3.tight_layout()
+        fig3.savefig(out_dir / f"mean_ttft_vs_qps_flag_{flag}.pdf")
+        plt.close(fig3)
+
+# ──────────────────────────── CLI entry ────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out_dir", required=True, help="Directory for PDF output")
     ap.add_argument("run_dirs", nargs="+", help="/runs/<run_id> directories")
     args = ap.parse_args()
 
-    runs       = [Path(p).expanduser() for p in args.run_dirs]
-    flag_data  = collect_data(runs)
+    runs      = [Path(p).expanduser() for p in args.run_dirs]
+    flag_data = collect_data(runs)
+
     if not any(flag_data.values()):
-        print("No data found – nothing plotted."); return
+        print("No data found – nothing plotted.")
+        return
+
     plot_all(flag_data, Path(args.out_dir).expanduser())
 
 if __name__ == "__main__":

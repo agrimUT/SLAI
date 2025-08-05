@@ -12,11 +12,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({
-    "font.size"       : 14,   # base size for everything
-    "axes.labelsize"  : 14,   # axis labels
+    "font.size"       : 20,   # base size for everything
+    "axes.labelsize"  : 22,   # axis labels
     "axes.titlesize"  : 16,   # suptitle
-    "xtick.labelsize" : 12,
-    "ytick.labelsize" : 12,
+    "xtick.labelsize" : 14,
+    "ytick.labelsize" : 14,
     "legend.fontsize" : 12,
 })
 
@@ -73,7 +73,6 @@ ax1.set_xlabel("Token budget", fontweight="bold")
 ax1.set_ylabel("Median TTFT (ms)", fontweight="bold", color='tab:blue')
 ax1.tick_params(axis='x', width=0)                       # no tick marks
 ax1.tick_params(axis='y', labelcolor='tab:blue', width=0)
-
 ax1.grid(ls='--', alpha=.4)
 
 ax2 = ax1.twinx()
@@ -85,5 +84,10 @@ ax2.tick_params(axis='y', labelcolor='tab:red', width=0)
 fig.tight_layout()
 #fig.suptitle("Mistral-7B • Token Budget vs TTFT & Batch Time",
 #             y=1.03, fontweight="bold", fontsize=16)
-
+for label in ax1.get_xticklabels():
+    label.set_fontweight('bold')
+for label in ax1.get_yticklabels():
+    label.set_fontweight('bold')
+for label in ax2.get_yticklabels():
+    label.set_fontweight('bold')
 fig.savefig(FIG_OUT, dpi=1200)
