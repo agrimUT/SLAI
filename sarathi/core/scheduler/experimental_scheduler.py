@@ -203,7 +203,7 @@ class ExperimentalScheduler(BaseScheduler):
         while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
             k += 1
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._slack(seq, now))
-        #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+        self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
         #self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._deadline(seq))
         # if k:  # nothing arrived → nothing to do
         #     arrived = self.waiting[:k]
@@ -219,19 +219,19 @@ class ExperimentalScheduler(BaseScheduler):
 
         #     keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
         #     self.waiting[:k] = [seq for _, seq in keyed]
-        if k:  # nothing arrived → nothing to do
-            arrived = self.waiting[:k]
+        # if k:  # nothing arrived → nothing to do
+        #     arrived = self.waiting[:k]
             
-            # Build a list of (sort_key, seq) tuples in one pass.
-            keyed: list[tuple[tuple[int, float], Sequence]] = []
-            for seq in arrived:
-                if seq.is_strict_tbt:
-                    keyed.append(((0, self._length(seq)), seq))            
-                else:
-                    keyed.append(((1, self._length(seq)), seq))  
+        #     # Build a list of (sort_key, seq) tuples in one pass.
+        #     keyed: list[tuple[tuple[int, float], Sequence]] = []
+        #     for seq in arrived:
+        #         if seq.is_strict_tbt:
+        #             keyed.append(((0, self._length(seq)), seq))            
+        #         else:
+        #             keyed.append(((1, self._length(seq)), seq))  
 
-            keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
-            self.waiting[:k] = [seq for _, seq in keyed]
+        #     keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
+        #     self.waiting[:k] = [seq for _, seq in keyed]
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]
