@@ -32,6 +32,7 @@ class Sequence:
         is_strict_tbt: Optional[bool] = None,
         prefill_e2e_time_deadline: Optional[float] = None,
         is_strict_prefill_e2e_time: Optional[bool] = None,  
+        oracle_decode_tokens: Optional[int] = None,
     ) -> None:
         self.seq_id = seq_id
         self.prompt = prompt
@@ -45,6 +46,7 @@ class Sequence:
         self.is_strict_tbt = is_strict_tbt 
         self.prefill_e2e_time_deadline = prefill_e2e_time_deadline
         self.is_strict_prefill_e2e_time = is_strict_prefill_e2e_time
+        self.oracle_decode_tokens = oracle_decode_tokens
 
         self.output_token_ids: List[int] = []
         self.prompt_tokens_processed = 0
@@ -70,6 +72,9 @@ class Sequence:
     def set_status(self, status: SequenceStatus) -> None:
         self.state.set_status(status)
 
+    def get_oracle_decode_tokens(self) -> int:
+        return self.oracle_decode_tokens
+    
     def _append_logical_block(self) -> None:
         block = LogicalTokenBlock(
             block_number=len(self.logical_token_blocks),

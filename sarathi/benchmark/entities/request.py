@@ -34,6 +34,13 @@ class Request(BaseEntity):
     def size(self) -> Tuple[int, int]:
         return (self._num_prefill_tokens, self._num_decode_tokens)
 
+    def oracle_decode_tokens(self) -> int:
+        """
+        Returns the number of decode tokens that the oracle would generate
+        for this request.
+        """
+        return self._num_decode_tokens
+
     @property
     def arrived_at(self) -> float:
         return self._arrived_at
