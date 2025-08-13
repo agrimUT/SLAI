@@ -4,7 +4,7 @@ import heapq
 import numpy as np
 from math import ceil
 
-from sarathi.config import CacheConfig, ExperimentalSchedulerConfig
+from sarathi.config import CacheConfig, SLAISchedulerConfig
 from sarathi.core.block_space_manager.sarathi_block_space_manager import (
     SarathiBlockSpaceManager,
 )
@@ -17,11 +17,11 @@ from sarathi.logger import init_logger
 logger = init_logger(__name__)
 
 
-class ExperimentalScheduler(BaseScheduler):
+class SLAIScheduler(BaseScheduler):
 
     def __init__(
         self,
-        scheduler_config: ExperimentalSchedulerConfig,
+        scheduler_config: SLAISchedulerConfig,
         cache_config: CacheConfig,
     ) -> None:
         super().__init__(scheduler_config, cache_config)

@@ -3,5 +3,5 @@ from sarathi.core.block_space_manager.sarathi_block_space_manager import (
 )
 
 
-class ExperimentalBlockSpaceManager(SarathiBlockSpaceManager):
+class SLAIBlockSpaceManager(SarathiBlockSpaceManager):
     pass

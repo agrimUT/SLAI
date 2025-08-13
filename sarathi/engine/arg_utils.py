@@ -18,7 +18,7 @@ from sarathi.config import (
     SimpleChunkingSchedulerConfig,
     VLLMSchedulerConfig,
     LastMinuteSchedulerConfig,
-    ExperimentalSchedulerConfig,
+    SLAISchedulerConfig,
 )
 
 from sarathi.core.scheduler.hold_n_scheduler import Hold_NSchedulerConfig
@@ -159,12 +159,12 @@ class EngineArgs:
                 self.hold_n_scheduler_token_budget,
                 self.hold_n_scheduler_prefill_factor,
             )
-        elif self.scheduler_type == SchedulerType.EXPERIMENTAL_SCHEDULER.name.lower():
-            assert self.token_budget is not None, "token_budget must be set for experimental scheduler"
-            assert self.offset is not None, "offset must be set for experimental scheduler"
-            assert self.time_between_tokens is not None, "time_between_tokens must be set for experimental scheduler"
-            assert self.limit_total_decodes is not None, "limit_total_decodes must be set for experimental scheduler"
-            scheduler_config = ExperimentalSchedulerConfig(
+        elif self.scheduler_type == SchedulerType.SLAI_SCHEDULER.name.lower():
+            assert self.token_budget is not None, "token_budget must be set for slai scheduler"
+            assert self.offset is not None, "offset must be set for slai scheduler"
+            assert self.time_between_tokens is not None, "time_between_tokens must be set for slai scheduler"
+            assert self.limit_total_decodes is not None, "limit_total_decodes must be set for slai scheduler"
+            scheduler_config = SLAISchedulerConfig(
                 self.max_num_seqs,
                 model_config.get_max_model_len(),
                 num_pipeline_stages,

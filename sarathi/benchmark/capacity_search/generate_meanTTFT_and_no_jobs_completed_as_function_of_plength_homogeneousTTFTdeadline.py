@@ -29,17 +29,17 @@ PATH_LABEL_OVERRIDES = {
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms/runs/1fa6391d":
         r"last-minute ($\tau = 512,\ \alpha = 128,\ \beta = 128,\ \delta = 10$)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max/runs/a63e0e4b":
-        r"experimental ($\tau = 512,\ \alpha = 128,\ \beta = 128,\ \delta = 10$)",
+        r"SLAI ($\tau = 512,\ \alpha = 128,\ \beta = 128,\ \delta = 10$)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms/runs/0388ed44":
         r"last minute ($\tau = 512,\ \alpha = 128,\ \beta = 128,\ \delta = 5$)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_reverseslack/runs/a63e0e4b":
-        r"experimental (reverse slack)",
+        r"SLAI (reverse slack)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_shortestjobfirst/runs/a63e0e4b":
-        r"experimental (shortest)",
+        r"SLAI (shortest)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_bucketsorting/runs/a63e0e4b":
-        r"experimental (bucket sorting)",
+        r"SLAI (bucket sorting)",
     "/home/ab73456/sarathi-serve/capacity_curve_wbinary_search_mistral_7b_relaxed_htr_pe2e_delay_p5per_100ms_500ms_max_bucketsorting_prefilldeadline2/runs/a63e0e4b":
-        r"experimental (bucket sorting, prefill deadline = 2s)",
+        r"SLAI (bucket sorting, prefill deadline = 2s)",
 }
 
 # ───────────────────────────────────────────────────────────────

@@ -105,7 +105,7 @@ hold_n_scheduler:
   token_budget: 512
   prefill_factor: 4
 
-experimental_scheduler:
+slai_scheduler:
   token_budget: 512
   offset: 10
   time_between_tokens: 0.2

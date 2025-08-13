@@ -72,11 +72,11 @@ class BenchmarkRunner:
             time_between_tokens = self._config.last_minute_scheduler_time_between_tokens
             process_smallest_prefill = self._config.last_minute_scheduler_process_smallest_prefill
             limit_total_decodes = self._config.last_minute_scheduler_limit_total_decodes
-        elif self._config.replica_scheduler_provider == "experimental_scheduler":
-            token_budget        = self._config.experimental_scheduler_token_budget
-            offset              = self._config.experimental_scheduler_offset
-            time_between_tokens = self._config.experimental_scheduler_time_between_tokens
-            limit_total_decodes = self._config.experimental_scheduler_limit_total_decodes
+        elif self._config.replica_scheduler_provider == "slai_scheduler":
+            token_budget        = self._config.slai_scheduler_token_budget
+            offset              = self._config.slai_scheduler_offset
+            time_between_tokens = self._config.slai_scheduler_time_between_tokens
+            limit_total_decodes = self._config.slai_scheduler_limit_total_decodes
         self._llm_engine = LLMEngine.from_engine_args(
             # replica config
             replica_id=replica_id,
@@ -105,7 +105,7 @@ class BenchmarkRunner:
             chunk_schedule_stages=self._config.sarathi_scheduler_chunk_schedule_stages,
             # vllm scheduler config
             max_num_batched_tokens=self._config.vllm_scheduler_max_tokens_in_batch,
-            # last‑minute and experimental scheduler config
+            # last‑minute and slai scheduler config
             token_budget        = token_budget,
             offset              = offset,
             time_between_tokens = time_between_tokens,

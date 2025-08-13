@@ -19,7 +19,7 @@ class SchedulerType(BaseIntEnum):
     SIMPLE_CHUNKING = 5
     LAST_MINUTE = 6
     HOLD_N = 7
-    EXPERIMENTAL_SCHEDULER = 8
+    SLAI_SCHEDULER = 8
 
 
 class ModelConfig:
@@ -416,7 +416,7 @@ class LastMinuteSchedulerConfig(BaseSchedulerConfig):
     def type(self):
         return SchedulerType.LAST_MINUTE
     
-class ExperimentalSchedulerConfig(BaseSchedulerConfig):
+class SLAISchedulerConfig(BaseSchedulerConfig):
 
     def __init__(
         self,
@@ -441,7 +441,7 @@ class ExperimentalSchedulerConfig(BaseSchedulerConfig):
 
     @property
     def type(self):
-        return SchedulerType.EXPERIMENTAL_SCHEDULER
+        return SchedulerType.SLAI_SCHEDULER
 
 class MetricsConfig:
     """Metric configuration."""
