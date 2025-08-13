@@ -10,15 +10,6 @@ schedulers:
   #   chunk_size: 512 # 2048 for relaxed 
   #   batch_size: 128
   #   capacity: 2
-  # - name: last_minute_cs512_bs128_offset_10_limittotaldecodes_128
-  #   scheduler: last_minute
-  #   token_budget: 512
-  #   batch_size: 128
-  #   offset: 10
-  #   limit_total_decodes: 128
-  #   time_between_tokens: 0.2 
-  #   process_smallest_prefill: false
-  #   capacity: 2 
   - name: slai_scheduler_shortest_job_first_dynamic_offset
     scheduler: slai_scheduler
     token_budget: 512

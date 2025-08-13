@@ -17,7 +17,6 @@ from sarathi.config import (
     SchedulerType,
     SimpleChunkingSchedulerConfig,
     VLLMSchedulerConfig,
-    LastMinuteSchedulerConfig,
     SLAISchedulerConfig,
 )
 
@@ -129,22 +128,6 @@ class EngineArgs:
                 model_config.get_max_model_len(),
                 num_pipeline_stages,
                 self.chunk_size,
-            )
-        elif self.scheduler_type == SchedulerType.LAST_MINUTE.name.lower():
-            assert self.token_budget is not None, "token_budget must be set for last minute scheduler"
-            assert self.offset is not None, "offset must be set for last minute scheduler"
-            assert self.time_between_tokens is not None, "time_between_tokens must be set for last minute scheduler"
-            assert self.process_smallest_prefill is not None, "process_smallest_prefill must be set for last minute scheduler"
-            assert self.limit_total_decodes is not None, "limit_total_decodes must be set for last minute scheduler"
-            scheduler_config = LastMinuteSchedulerConfig(
-                self.max_num_seqs,
-                model_config.get_max_model_len(),
-                num_pipeline_stages,
-                self.token_budget,
-                self.offset,
-                self.time_between_tokens,
-                self.process_smallest_prefill,
-                self.limit_total_decodes,
             )
         elif self.scheduler_type == SchedulerType.HOLD_N.name.lower():
             assert self.hold_n_scheduler_hold_n is not None, "hold_n must be set"

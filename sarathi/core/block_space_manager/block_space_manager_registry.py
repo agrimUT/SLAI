@@ -14,9 +14,6 @@ from sarathi.core.block_space_manager.simple_chunking_block_space_manager import
 from sarathi.core.block_space_manager.vllm_block_space_manager import (
     VLLMBlockSpaceManager,
 )
-from sarathi.core.block_space_manager.last_minute_space_manager import (
-    LastMinuteBlockSpaceManager,
-)
 from sarathi.core.block_space_manager.slai_scheduler_space_manager import (
     SLAIBlockSpaceManager,
 )
@@ -35,6 +32,5 @@ BlockSpaceManagerRegistry.register(SchedulerType.ORCA, OrcaBlockSpaceManager)
 BlockSpaceManagerRegistry.register(SchedulerType.FASTER_TRANSFORMER, FasterTransformerBlockSpaceManager)
 BlockSpaceManagerRegistry.register(SchedulerType.SARATHI, SarathiBlockSpaceManager)
 BlockSpaceManagerRegistry.register(SchedulerType.SIMPLE_CHUNKING, SimpleChunkingBlockSpaceManager)
-BlockSpaceManagerRegistry.register(SchedulerType.LAST_MINUTE, LastMinuteBlockSpaceManager) 
 BlockSpaceManagerRegistry.register(SchedulerType.HOLD_N, VLLMBlockSpaceManager)
 BlockSpaceManagerRegistry.register(SchedulerType.SLAI_SCHEDULER, SLAIBlockSpaceManager)

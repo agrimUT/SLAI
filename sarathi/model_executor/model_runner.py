@@ -140,7 +140,7 @@ class ModelRunner:
 
         if (
             self.scheduler_config.type == SchedulerType.SARATHI
-            or self.scheduler_config.type == SchedulerType.SIMPLE_CHUNKING 
+            or self.scheduler_config.type == SchedulerType.SIMPLE_CHUNKING  
         ):
             # Profile memory usage with a single `chunk_size` chunk
             # which is the last chunk in the longest supported sequence.
@@ -166,11 +166,11 @@ class ModelRunner:
                 prompt_chunk_len=chunk_size,
             )
             seq_metadata_list.append(seq_metadata)
-        elif self.scheduler_config.type == SchedulerType.LAST_MINUTE:
+        elif self.scheduler_config.type == SchedulerType.HOLD_N or self.scheduler_config.type == SchedulerType.SLAI_SCHEDULER:
             token_budget = self.scheduler_config.token_budget
             if token_budget is None:
                 raise ValueError(
-                    "token_budget must be specified for LAST_MINUTE scheduler."
+                    "token_budget must be specified for HOLD_N or SLAI scheduler."
                 )
             seq_len = self.model_config.get_max_model_len()
             token_budget = min(token_budget, seq_len)

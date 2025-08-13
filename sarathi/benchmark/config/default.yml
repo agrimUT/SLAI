@@ -93,13 +93,6 @@ vllm_scheduler:
 simple_chunking_scheduler:
   chunk_size: 512
 
-last_minute_scheduler:
-  token_budget: 512
-  offset: 2
-  time_between_tokens: 0.5
-  process_smallest_prefill: false
-  limit_total_decodes: 80
-
 hold_n_scheduler:
   hold_n: 0            # default, script overrides
   token_budget: 512

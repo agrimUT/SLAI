@@ -66,13 +66,7 @@ class BenchmarkRunner:
         elif self._config.replica_scheduler_provider == "simple_chunking":
             chunk_size = self._config.simple_chunking_scheduler_chunk_size
         token_budget = offset = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
-        if self._config.replica_scheduler_provider == "last_minute":
-            token_budget        = self._config.last_minute_scheduler_token_budget
-            offset              = self._config.last_minute_scheduler_offset
-            time_between_tokens = self._config.last_minute_scheduler_time_between_tokens
-            process_smallest_prefill = self._config.last_minute_scheduler_process_smallest_prefill
-            limit_total_decodes = self._config.last_minute_scheduler_limit_total_decodes
-        elif self._config.replica_scheduler_provider == "slai_scheduler":
+        if self._config.replica_scheduler_provider == "slai_scheduler":
             token_budget        = self._config.slai_scheduler_token_budget
             offset              = self._config.slai_scheduler_offset
             time_between_tokens = self._config.slai_scheduler_time_between_tokens
