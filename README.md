@@ -73,22 +73,39 @@ bash ./scripts/shell_script_to_generate_bexectime_vs_no_of_decodes.sh
 python ./scripts/plotting_bexectime_vs_no_of_decodes.py
 ```
 
-### 2. Evaluate a Given Policy and Configuration
+### 2. Evaluating a Given Policy and Configuration
 
-To evaluate a policy with a specific model and a mixture of paying and free-tier users:
+To evaluate a specific scheduler policy, model, and mixture of user tiers:
 
 ```bash
-python -m sarathi.benchmark.capacity_search.generate_TTFT_TBT_for_different_schedulers   --config-path ./config_path_yml_files/mistral7b_relaxed.yml   --output-dir ./heterogeneous_TBT_p5per_100ms_500ms_mistral7b_spf_slai   --prefill-time-quantile 0.50   --hetero_tbt_prob 0.05   --hetero_strict_tbt 0.1   --hetero_relaxed_tbt 0.5
+python -m sarathi.benchmark.capacity_search.generate_TTFT_TBT_for_different_schedulers   --config-path ./config_path_yml_files/mistral7b_relaxed.yml   --output-dir ./heterogeneous_TBT_p5per_100ms_500ms_mistral7b   --prefill-time-quantile 0.50   --hetero_tbt_prob 0.05   --hetero_strict_tbt 0.1   --hetero_relaxed_tbt 0.5
 ```
 
 #### Explanation of Parameters
 
-- `--prefill-time-quantile`: The quantile of prefill delay we focus on (e.g., 0.50 for median prefill delay).
-- `--hetero_tbt_prob`: Probability that a request originates from a **paying user**.
-- `--hetero_strict_tbt`: Token Budget Time (TBT) deadline for **paying users**, in seconds.
-- `--hetero_relaxed_tbt`: TBT deadline for **free-tier users**, in seconds.
+- `--config-path`: Path to the YAML file that defines experiment settings including model name, tokenizer, batch size, max tokens, and scheduling policy.
+- `--output-dir`: Directory where the generated metrics and logs will be saved.
+- `--prefill-time-quantile`: Controls the target quantile (e.g., median) for prefill latency. Used to set SLAI's prefill latency target.
+- `--hetero_tbt_prob`: Probability that a request comes from a **paying user**.
+- `--hetero_strict_tbt`: Token Budget Time (TBT) deadline for **paying users**, measured in seconds.
+- `--hetero_relaxed_tbt`: TBT deadline for **free-tier users**, measured in seconds.
 
-These parameters allow us to simulate and evaluate SLAI under heterogeneous service-level agreements (SLAs).
+This script simulates inference traffic under SLO constraints and evaluates how different schedulers (like SLAI, Sarathi-serve, vLLM, etc.) perform under heterogeneous user mixes.
+
+## Project Structure
+
+```
+SLAI/
+├── config_path_yml_files/        # Configuration files for models and scheduler policies
+├── data/                         # Trace files and generated results
+├── sarathi/                      # Core benchmarking and scheduling logic
+│   ├── benchmark/                # Evaluation drivers, capacity search, metrics collection
+│   └── core/                     # Sequence, scheduler, and cache logic
+├── scripts/                      # Shell + Python scripts to run simulations and generate plots
+├── env/                          # Conda environment directory (not tracked in Git)
+├── README.md                     # Project documentation
+└── setup.py                      # Setup script to install SLAI as a package
+```
 
 ## Citation
 
