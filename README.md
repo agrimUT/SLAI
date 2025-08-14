@@ -126,3 +126,4 @@ If you find this work useful, please consider citing:
 ## Acknowledgments
 
 This project builds on the [Sarathi-Serve](https://github.com/microsoft/sarathi-serve/tree/main) codebase. Like Sarathi-Serve, SLAI is a research prototype and does not aim for full feature parity with open-source vLLM. We have retained only the essential features to allow for faster iteration in research.
+
