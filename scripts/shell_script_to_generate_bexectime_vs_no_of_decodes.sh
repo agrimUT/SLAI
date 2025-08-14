@@ -18,7 +18,7 @@ echo "N_decode,run_id,batch_exec_time_s" > "$SUMMARY"       # overwrite each run
 
 for N in "${DECODE_NS[@]}"; do
   NUM_REQ=$(( N + 1 ))
-  TRACE="$REPO/scripts/trace_n${N}.csv"                     # pre-generated
+  TRACE="$REPO/scripts/trace_p512_n${N}.csv"                     # pre-generated
 
   for r in $(seq 1 "$REPS"); do
     echo -e "\n===== N=$N  run=$r/$REPS ====="
