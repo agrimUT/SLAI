@@ -1,6 +1,3 @@
-# sarathi/core/scheduler/hold_n_scheduler.py
-# Copyright (c) Microsoft Corporation.
-# SPDX-License-Identifier: MIT
 from __future__ import annotations
 import time
 from dataclasses import dataclass
@@ -14,11 +11,6 @@ from sarathi.core.scheduler.base_scheduler import BaseScheduler
 from sarathi.core.datatypes.sequence_status import SequenceStatus
 from sarathi.logger import init_logger
 logger = init_logger(__name__)
-
-
-# --------------------------------------------------------------------- #
-# 1. Config                                                             #
-# --------------------------------------------------------------------- #
 class Hold_NSchedulerConfig(BaseSchedulerConfig):
     def __init__(
         self,
@@ -42,10 +34,6 @@ class Hold_NSchedulerConfig(BaseSchedulerConfig):
     def type(self):
         return SchedulerType.HOLD_N
 
-
-# --------------------------------------------------------------------- #
-# 2. Scheduler                                                          #
-# --------------------------------------------------------------------- #
 class Hold_NScheduler(BaseScheduler):
     """Wait until *hold_n* decode-ready sequences exist, then run them
     together with one filler prefill request **once**."""
@@ -84,7 +72,6 @@ class Hold_NScheduler(BaseScheduler):
                 self.running.remove(seq)
 
 
-    # ------------------------------------------------------------------ main
     def _schedule(self) -> SchedulerOutputs:
         if self.has_fired:
             return SchedulerOutputs(self._iteration_id, [], [], [])
@@ -105,7 +92,7 @@ class Hold_NScheduler(BaseScheduler):
             if seq not in self.decode_buf:
                 self.decode_buf.append(seq)
 
-        # ---------------- phase 1: finish prefills -----------------------
+        # phase 1: run prefills
         if len(self.decode_buf) < self.hold_n and self.waiting:
             seq = self.waiting.pop(0)
             if not self._check_request_prompt_length(seq):
@@ -122,7 +109,7 @@ class Hold_NScheduler(BaseScheduler):
         if meta or ignored:
             return SchedulerOutputs(self._iteration_id, ignored, preempted, meta)
 
-        # ---------------- phase 2: timed batch ---------------------------
+        # phase 2: run the timed batch 
         if len(self.decode_buf) >= self.hold_n:
             assert self.filler_seq is not None, "Filler sequence should have been found by now."
             filler_seq = self.filler_seq
