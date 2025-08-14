@@ -204,3 +204,17 @@ env_2
 capacity_curve*
 test*
 heterogeneous*
+
+
+!scripts/trace_p512_n8.csv
+!scripts/trace_p512_n16.csv
+!scripts/trace_p512_n32.csv
+!scripts/trace_p512_n64.csv
+!scripts/trace_p512_n128.csv
+!scripts/trace_p512_n256.csv
+!scripts/trace_p2048_n8.csv
+!scripts/trace_p2048_n16.csv
+!scripts/trace_p2048_n32.csv
+!scripts/trace_p2048_n64.csv
+!scripts/trace_p2048_n108.csv
+!scripts/trace_p2048_n128.csv
