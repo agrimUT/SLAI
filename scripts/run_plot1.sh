@@ -35,6 +35,7 @@ for CHUNK in "${CHUNKS[@]}"; do
     --replica_scheduler_provider sarathi \
     --replica_scheduler_max_batch_size 1 \
     --sarathi_scheduler_chunk_size $CHUNK \
+    --sarathi_scheduler_fcfs true \
     --sarathi_scheduler_enable_dynamic_chunking_schedule false \
     \
     --metrics_store_keep_individual_batch_metrics true \
