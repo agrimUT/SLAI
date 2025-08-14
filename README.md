@@ -1,57 +1,111 @@
-# Sarathi-Serve
+# SLAI
 
-This is the official OSDI'24 artifact submission for paper #444, "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve”.
+This repository contains the code used to generate the plots in our paper:  
+**"Optimal Scheduling Algorithms for LLM Inference: Theory and Practice"**
 
 ## Setup
 
-### Setup CUDA
+### CUDA Environment
 
-Sarathi-Serve has been tested with CUDA 12.1 on A100 and A40 GPUs.
+We use the same setup as [Sarathi-Serve (OSDI branch)](https://github.com/microsoft/sarathi-serve/tree/osdi-sarathi-serve).
 
-### Clone repository
+SLAI was tested with:
+- **CUDA version**: 12.1  
+- **GPU**: NVIDIA RTX ADA 6000
 
-```sh
-git clone https://github.com/microsoft/sarathi-serve.git
+Please ensure your machine has a compatible CUDA environment.
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/agrimUT/SLAI.git
+cd SLAI
 ```
 
-### Create mamba environment
+### Set Up Mamba Environment
 
-Setup mamba if you don't already have it,
+If you don’t already have Mamba, install it using:
 
-```sh
+```bash
 wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
-bash Mambaforge-Linux-x86_64.sh # follow the instructions from there
+bash Mambaforge-Linux-x86_64.sh
 ```
 
-Create a Python 3.10 environment,
+Then create a Python 3.10 environment:
 
-```sh
-mamba create -p ./env python=3.10  
+```bash
+mamba create -p ./env python=3.10
+mamba activate ./env
 ```
 
-### Install Sarathi-Serve
+### Install SLAI and Dependencies
 
-```sh
+Install the package and its dependencies:
+
+```bash
 pip install -e . --extra-index-url https://flashinfer.ai/whl/cu121/torch2.3/
 ```
 
 ## Reproducing Results
 
-Refer to readmes in individual folders corresponding to each figure in `osdi-experiments`.
+We provide scripts to reproduce key plots from the paper.
+
+### 1. Reproduce Figure 5
+
+- **Plot (a)**: *Median TTFT and Batch Execution Time vs. Token Budget*
+
+```bash
+bash ./scripts/shell_script_to_generate_medianTTFT_and_bexectime_vs_token_budget.sh
+python ./scripts/plotting_medianTTFT_and_bexectime_vs_token_budget.py
+```
+
+- **Plot (b)**: *GPU Memory Utilization vs. Number of Active Requests*
+
+```bash
+bash ./scripts/shell_script_to_generate_gpu_mem_utl_vs_active_requests.sh
+python ./scripts/plotting_gpu_mem_utl_vs_active_requests.py
+```
+
+- **Plot (c)**: *Batch Execution Time vs. Number of Decode Tokens*
+
+```bash
+bash ./scripts/shell_script_to_generate_bexectime_vs_no_of_decodes.sh
+python ./scripts/plotting_bexectime_vs_no_of_decodes.py
+```
+
+### 2. Evaluate a Given Policy and Configuration
+
+To evaluate a policy with a specific model and a mixture of paying and free-tier users:
+
+```bash
+python -m sarathi.benchmark.capacity_search.generate_TTFT_TBT_for_different_schedulers   --config-path ./config_path_yml_files/mistral7b_relaxed.yml   --output-dir ./heterogeneous_TBT_p5per_100ms_500ms_mistral7b_spf_slai   --prefill-time-quantile 0.50   --hetero_tbt_prob 0.05   --hetero_strict_tbt 0.1   --hetero_relaxed_tbt 0.5
+```
+
+#### Explanation of Parameters
+
+- `--prefill-time-quantile`: The quantile of prefill delay we focus on (e.g., 0.50 for median prefill delay).
+- `--hetero_tbt_prob`: Probability that a request originates from a **paying user**.
+- `--hetero_strict_tbt`: Token Budget Time (TBT) deadline for **paying users**, in seconds.
+- `--hetero_relaxed_tbt`: TBT deadline for **free-tier users**, in seconds.
+
+These parameters allow us to simulate and evaluate SLAI under heterogeneous service-level agreements (SLAs).
 
 ## Citation
 
-If you use our work, please consider citing our paper:
+If you find this work useful, please consider citing:
 
-```
-@article{agrawal2024taming,
-  title={Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve},
-  author={Agrawal, Amey and Kedia, Nitin and Panwar, Ashish and Mohan, Jayashree and Kwatra, Nipun and Gulavani, Bhargav S and Tumanov, Alexey and Ramjee, Ramachandran},
-  journal={Proceedings of 18th USENIX Symposium on Operating Systems Design and Implementation, 2024, Santa Clara},
-  year={2024}
+```bibtex
+@misc{bari2025optimalschedulingalgorithmsllm,
+  title={Optimal Scheduling Algorithms for LLM Inference: Theory and Practice}, 
+  author={Agrim Bari and Parikshit Hegde and Gustavo de Veciana},
+  year={2025},
+  eprint={2508.01002},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2508.01002},
 }
 ```
 
-## Acknowledgment
+## Acknowledgments
 
-This repository originally started as a fork of the [vLLM project](https://vllm-project.github.io/). Sarathi-Serve is a research prototype and does not have complete feature parity with open-source vLLM. We have only retained the most critical features and adopted the codebase for faster research iterations.
+This project builds on the [Sarathi-Serve](https://github.com/microsoft/sarathi-serve/tree/main) codebase. Like Sarathi-Serve, SLAI is a research prototype and does not aim for full feature parity with open-source vLLM. We have retained only the essential features to allow for faster iteration in research.
