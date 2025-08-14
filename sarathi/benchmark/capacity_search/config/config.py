@@ -88,7 +88,7 @@ class SchedulerConfig:
         key = f"{self.scheduler}_bs{self.batch_size}"
 
         if self.chunk_size is not None:
-            key += f"_cs{self.chunk_size}"
+            key += f"_cs{self.chunk_size}" 
 
         if self.scheduler == "slai_scheduler":
             assert self.token_budget is not None and self.time_between_tokens is not None and self.limit_total_decodes is not None and self.fcfs is not None and self.fixed_offset is not None and self.below_memory_limit_offset is not None and self.above_memory_limit_offset is not None and self.memory_limit is not None and self.user_priority is not None
@@ -123,10 +123,12 @@ class SchedulerConfig:
             }
         elif self.scheduler == "sarathi":
             assert self.chunk_size is not None
+            assert self.fcfs is not None
             return {
                 "replica_scheduler_provider": "sarathi",
                 "replica_scheduler_max_batch_size": self.batch_size,
                 "sarathi_scheduler_chunk_size": self.chunk_size,
+                "sarathi_scheduler_fcfs": self.fcfs,
             }
         elif self.scheduler == "slai_scheduler":
             assert self.token_budget is not None

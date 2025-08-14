@@ -5,8 +5,14 @@ schedulers:
   # - name: orca
   #   scheduler: orca
   #   batch_size: 8 # with higher batch size activation and kv cache memory blows up
-  # - name: sarathi_spf_512
+  # - name: sarathi_fcfs
   #   scheduler: sarathi
+  #   fcfs : true
+  #   chunk_size: 512
+  #   batch_size: 128
+  # - name: sarathi_spf
+  #   scheduler: sarathi
+  #   fcfs : false
   #   chunk_size: 512
   #   batch_size: 128
   # - name: slai_scheduler_fcfs_fixed_offset

@@ -121,6 +121,7 @@ class EngineArgs:
                 model_config.get_max_model_len(),
                 num_pipeline_stages,
                 self.chunk_size,
+                self.fcfs,
                 self.enable_dynamic_chunking_schedule,
                 self.low_chunk_size,
                 self.high_chunk_size,

@@ -60,12 +60,13 @@ class BenchmarkRunner:
             wandb_group = None
             wandb_run_name = None
 
-        chunk_size = None
+        chunk_size = fcfs = None
         if self._config.replica_scheduler_provider == "sarathi":
             chunk_size = self._config.sarathi_scheduler_chunk_size
+            fcfs = self._config.sarathi_scheduler_fcfs
         elif self._config.replica_scheduler_provider == "simple_chunking":
             chunk_size = self._config.simple_chunking_scheduler_chunk_size
-        token_budget = fcfs = fixed_offset = below_memory_limit_offset = above_memory_limit_offset = memory_limit = user_priority = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
+        token_budget = fixed_offset = below_memory_limit_offset = above_memory_limit_offset = memory_limit = user_priority = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
         if self._config.replica_scheduler_provider == "slai_scheduler":
             token_budget        = self._config.slai_scheduler_token_budget
             fcfs               = self._config.slai_scheduler_fcfs
@@ -97,6 +98,7 @@ class BenchmarkRunner:
             max_num_seqs=self._config.replica_scheduler_max_batch_size,
             # sarathi scheduler config
             chunk_size=chunk_size,
+            fcfs=fcfs,
             enable_dynamic_chunking_schedule=self._config.sarathi_scheduler_enable_dynamic_chunking_schedule,
             low_chunk_size=self._config.sarathi_scheduler_low_chunk_size,
             high_chunk_size=self._config.sarathi_scheduler_high_chunk_size,
@@ -104,9 +106,8 @@ class BenchmarkRunner:
             chunk_schedule_stages=self._config.sarathi_scheduler_chunk_schedule_stages,
             # vllm scheduler config
             max_num_batched_tokens=self._config.vllm_scheduler_max_tokens_in_batch,
-            # last‑minute and slai scheduler config
+            # slai scheduler config
             token_budget        = token_budget,
-            fcfs               = fcfs,
             fixed_offset       = fixed_offset,
             below_memory_limit_offset = below_memory_limit_offset,
             above_memory_limit_offset = above_memory_limit_offset,

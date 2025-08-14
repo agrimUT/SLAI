@@ -79,6 +79,7 @@ replica_scheduler:
 
 sarathi_scheduler:
   chunk_size: 512
+  fcfs: true
   enable_dynamic_chunking_schedule: false
   # next four params apply only when using dynamic schedule
   low_chunk_size: 128

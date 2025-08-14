@@ -360,6 +360,7 @@ class SarathiSchedulerConfig(BaseSchedulerConfig):
         max_model_len: int,
         num_pipeline_stages: int,
         chunk_size: Optional[int],
+        fcfs: Optional[bool], 
         enable_dynamic_chunking_schedule: bool,
         low_chunk_size: Optional[int],
         high_chunk_size: Optional[int],
@@ -368,6 +369,7 @@ class SarathiSchedulerConfig(BaseSchedulerConfig):
     ) -> None:
         super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
         self.chunk_size = chunk_size
+        self.fcfs = fcfs
         self.enable_dynamic_chunking_schedule = enable_dynamic_chunking_schedule
         self.low_chunk_size = low_chunk_size
         self.high_chunk_size = high_chunk_size
