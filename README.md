@@ -1,7 +1,7 @@
 # SLAI
 
 This repository contains the code used to generate the plots in our paper:  
-**"Optimal Scheduling Algorithms for LLM Inference: Theory and Practice"**
+**"Optimal Scheduling Algorithms for LLM Inference: Theory and Practice"**[Link to paper](https://arxiv.org/abs/2508.01002)
 
 ## Setup
 
