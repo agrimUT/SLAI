@@ -55,9 +55,14 @@ class EngineArgs:
     high_chunk_size: Optional[int] = None
     chunk_schedule_max_tokens: Optional[int] = None
     chunk_schedule_stages: Optional[int] = None
-    # last minute scheduler parameters
+    # SLAI scheduler parameters
     token_budget : Optional[int] = None # Add your token budget argument
-    offset: Optional[float] = None # Add your offset argument
+    fcfs: Optional[bool] = None # Add your fcfs argument
+    fixed_offset: Optional[bool] = None # Add your fixed offset argument
+    below_memory_limit_offset: Optional[int] = None # Add your below memory limit offset argument
+    above_memory_limit_offset: Optional[int] = None # Add your above memory limit offset argument
+    memory_limit: Optional[float] = None # Add your memory limit argument
+    user_priority: Optional[bool] = None # Add your user priority argument
     time_between_tokens: Optional[float] = None # Add your tbt argument
     process_smallest_prefill : Optional[bool] = None # Add your process_smallest_prefill argument
     limit_total_decodes: Optional[int] = None  # Add your limit_total_decodes argument
@@ -144,15 +149,26 @@ class EngineArgs:
             )
         elif self.scheduler_type == SchedulerType.SLAI_SCHEDULER.name.lower():
             assert self.token_budget is not None, "token_budget must be set for slai scheduler"
-            assert self.offset is not None, "offset must be set for slai scheduler"
+            assert self.fcfs is not None, "fcfs must be set for slai scheduler"
+            assert self.fixed_offset is not None, "fixed_offset must be set for slai scheduler"
+            assert self.below_memory_limit_offset is not None, "below_memory_limit_offset must be set for slai scheduler"
+            assert self.above_memory_limit_offset is not None, "above_memory_limit_offset must be set for slai scheduler"
+            assert self.memory_limit is not None, "memory_limit must be set for slai scheduler"
+            assert self.user_priority is not None, "user_priority must be set for slai scheduler"
             assert self.time_between_tokens is not None, "time_between_tokens must be set for slai scheduler"
             assert self.limit_total_decodes is not None, "limit_total_decodes must be set for slai scheduler"
+
             scheduler_config = SLAISchedulerConfig(
                 self.max_num_seqs,
                 model_config.get_max_model_len(),
                 num_pipeline_stages,
                 self.token_budget,
-                self.offset,
+                self.fcfs,
+                self.fixed_offset,
+                self.below_memory_limit_offset,
+                self.above_memory_limit_offset,
+                self.memory_limit,
+                self.user_priority,
                 self.time_between_tokens,
                 self.limit_total_decodes,
             )

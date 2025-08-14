@@ -9,13 +9,54 @@ schedulers:
   #   scheduler: sarathi
   #   chunk_size: 512
   #   batch_size: 128
-  - name: slai_scheduler_shortest_job_first_dynamic_offset
+  # - name: slai_scheduler_fcfs_fixed_offset
+  #   scheduler: slai_scheduler
+  #   token_budget: 512
+  #   batch_size: 128
+  #   limit_total_decodes: 128
+  #   time_between_tokens: 0.2
+  #   fcfs : true
+  #   fixed_offset: true
+  #   below_memory_limit_offset : 10 
+  #   above_memory_limit_offset : 10
+  #   memory_limit : 1 
+  #   user_priority : false
+  # - name: slai_scheduler_spf_fixed_offset
+  #   scheduler: slai_scheduler
+  #   token_budget: 512
+  #   batch_size: 128
+  #   limit_total_decodes: 128
+  #   time_between_tokens: 0.2
+  #   fcfs : false
+  #   fixed_offset: true
+  #   below_memory_limit_offset : 10 
+  #   above_memory_limit_offset : 10
+  #   memory_limit : 1
+  #   user_priority : false
+  # - name: slai_scheduler_spf_dynamic_offset
+  #   scheduler: slai_scheduler
+  #   token_budget: 512
+  #   batch_size: 128
+  #   limit_total_decodes: 128
+  #   time_between_tokens: 0.2
+  #   fcfs : false
+  #   fixed_offset: false
+  #   below_memory_limit_offset : 5
+  #   above_memory_limit_offset : 10
+  #   memory_limit : 0.96
+  #   user_priority : false
+  - name: slai_scheduler_spf_dynamic_offset_user_priority
     scheduler: slai_scheduler
     token_budget: 512
     batch_size: 128
-    offset: 5
     limit_total_decodes: 128
     time_between_tokens: 0.2
+    fcfs : false
+    fixed_offset: false
+    below_memory_limit_offset : 5
+    above_memory_limit_offset : 10
+    memory_limit : 0.96
+    user_priority : true
 
 
 traces:
@@ -24,11 +65,6 @@ traces:
     max_seq_len: 8192
     num_requests: 16384
     start_qps: 2
-  # - name: arxiv
-  #   trace_file: "./data/processed_traces/arxiv_summarization_filtered_stats_llama2_tokenizer.csv"
-  #   max_seq_len: 16384
-  #   num_requests: 2048
-  #   start_qps: 0.5
 
 parallel_spec:
   - name: tp_1        

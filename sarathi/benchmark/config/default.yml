@@ -100,7 +100,12 @@ hold_n_scheduler:
 
 slai_scheduler:
   token_budget: 512
-  offset: 10
+  fcfs: false
+  fixed_offset: false
+  below_memory_limit_offset: 5
+  above_memory_limit_offset: 10
+  memory_limit: 0.96
+  user_priority: false
   time_between_tokens: 0.2
   limit_total_decodes: 128
   

@@ -28,7 +28,13 @@ class SLAIScheduler(BaseScheduler):
 
         self.prompt_limit = self.scheduler_config.max_model_len
         self.token_budget = self.scheduler_config.token_budget
-        self.offset = self.scheduler_config.offset
+        self.fcfs = self.scheduler_config.fcfs
+        self.fixed_offset = self.scheduler_config.fixed_offset
+        self.below_memory_limit_offset = self.scheduler_config.below_memory_limit_offset
+        self.above_memory_limit_offset = self.scheduler_config.above_memory_limit_offset
+        self.offset = self.scheduler_config.below_memory_limit_offset if self.fixed_offset else 0
+        self.memory_limit = self.scheduler_config.memory_limit
+        self.user_priority = self.scheduler_config.user_priority
         self.next_batch_run_time_for_decode = float("inf")
         self.minimum_time_between_tokens = float("inf")
         self.last_batch_start_time = 0
@@ -110,10 +116,11 @@ class SLAIScheduler(BaseScheduler):
                 if seq in self.paused_prefills:
                     self.paused_prefills.remove(seq)
                 perecent_gpu_memory_used =  self.block_manager.get_num_used_gpu_blocks() / self.block_manager.num_total_gpu_blocks
-                if(perecent_gpu_memory_used >= 0.96):
-                    self.offset = 10
-                else:
-                    self.offset = 5
+                if not self.fixed_offset:
+                    if(perecent_gpu_memory_used >= self.memory_limit):
+                        self.offset = self.above_memory_limit_offset
+                    else:
+                        self.offset = self.below_memory_limit_offset
                 
                 seq.last_schedulable_time = self.last_batch_end_time + self._tbt_for(seq) - self.offset * self._mean_batch_dur
                 heapq.heappush(self.decode_queue, (seq.last_schedulable_time, seq.arrival_time, seq)) 
@@ -195,25 +202,25 @@ class SLAIScheduler(BaseScheduler):
             )
             running.append(seq) 
         # Reordering requests that have arrived in the waiting queue either FCFS or SPF or SPF with priority for paying users 
-        k = 0
-        while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
-            k += 1
-        if k: 
-            # SPF 
-            self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
-            # SPF with priority for paying users
-            #     arrived = self.waiting[:k]
-                
-            #     # Build a list of (sort_key, seq) tuples in one pass.
-            #     keyed: list[tuple[tuple[int, float], Sequence]] = []
-            #     for seq in arrived:
-            #         if seq.is_strict_tbt:
-            #             keyed.append(((0, self._length(seq)), seq))            
-            #         else:
-            #             keyed.append(((1, self._length(seq)), seq))  
+        if not self.fcfs: # Shortest-Prompt-First (SPF) scheduling
+            k = 0
+            while k < len(self.waiting) and self.waiting[k].arrival_time <= now:
+                k += 1
+            if k: 
+                if not self.user_priority: # SPF without priority for paying users
+                    self.waiting[:k] = sorted(self.waiting[:k], key=lambda seq: self._length(seq))  # sort the rest by prompt length
+                else: # SPF with priority for paying users
+                        arrived = self.waiting[:k]
+                        # Build a list of (sort_key, seq) tuples in one pass.
+                        keyed: list[tuple[tuple[int, float], Sequence]] = []
+                        for seq in arrived:
+                            if seq.is_strict_tbt:
+                                keyed.append(((0, self._length(seq)), seq))            
+                            else:
+                                keyed.append(((1, self._length(seq)), seq))  
 
-            #     keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
-            #     self.waiting[:k] = [seq for _, seq in keyed]
+                        keyed.sort(key=lambda t: t[0])   # C-level Timsort over k items
+                        self.waiting[:k] = [seq for _, seq in keyed]
         # process the jobs from the waiting queue 
         while self.waiting and num_batched_tokens < self.token_budget:
             seq = self.waiting[0]

@@ -73,7 +73,12 @@ class SchedulerConfig:
     batch_size: int
     chunk_size: Optional[int] = None
     token_budget : Optional[int] = None
-    offset: Optional[float] = None
+    fcfs: Optional[bool] = None
+    fixed_offset: Optional[bool] = None
+    below_memory_limit_offset: Optional[int] = None
+    above_memory_limit_offset: Optional[int] = None
+    memory_limit: Optional[float] = None  
+    user_priority: Optional[bool] = None
     time_between_tokens: Optional[float] = None
     process_smallest_prefill: Optional[bool] = None
     limit_total_decodes: Optional[int] = None 
@@ -86,10 +91,15 @@ class SchedulerConfig:
             key += f"_cs{self.chunk_size}"
 
         if self.scheduler == "slai_scheduler":
-            assert self.token_budget is not None and self.offset is not None and self.time_between_tokens is not None
+            assert self.token_budget is not None and self.time_between_tokens is not None and self.limit_total_decodes is not None and self.fcfs is not None and self.fixed_offset is not None and self.below_memory_limit_offset is not None and self.above_memory_limit_offset is not None and self.memory_limit is not None and self.user_priority is not None
             key += (
                 f"_tb{self.token_budget}"
-                f"_off{self.offset:.1f}"
+                f"_off{self.below_memory_limit_offset:.1f}"
+                f"_abo{self.above_memory_limit_offset:.1f}"
+                f"_mem{self.memory_limit:.2f}"
+                f"_fcfs{self.fcfs}"
+                f"_fixoff{self.fixed_offset}"
+                f"_userpri{self.user_priority}"
                 f"_tbt{self.time_between_tokens:.1f}"
                 f"_ps{self.process_smallest_prefill}"
                 f"_maxdecodes{self.limit_total_decodes}"  # Assuming capacity is the limit for total decodes
@@ -120,14 +130,24 @@ class SchedulerConfig:
             }
         elif self.scheduler == "slai_scheduler":
             assert self.token_budget is not None
-            assert self.offset is not None
+            assert self.fcfs is not None
+            assert self.fixed_offset is not None
+            assert self.below_memory_limit_offset is not None
+            assert self.above_memory_limit_offset is not None
+            assert self.memory_limit is not None
+            assert self.user_priority is not None
             assert self.time_between_tokens is not None
             assert self.limit_total_decodes is not None
             return {
                 "replica_scheduler_provider": "slai_scheduler",
                 "replica_scheduler_max_batch_size": self.batch_size,
                 "slai_scheduler_token_budget": self.token_budget,
-                "slai_scheduler_offset": self.offset,
+                "slai_scheduler_fcfs": self.fcfs,
+                "slai_scheduler_fixed_offset": self.fixed_offset,
+                "slai_scheduler_below_memory_limit_offset": self.below_memory_limit_offset,
+                "slai_scheduler_above_memory_limit_offset": self.above_memory_limit_offset,
+                "slai_scheduler_memory_limit": self.memory_limit,
+                "slai_scheduler_user_priority": self.user_priority,
                 "slai_scheduler_time_between_tokens": self.time_between_tokens,
                 "slai_scheduler_limit_total_decodes": self.limit_total_decodes,
             }

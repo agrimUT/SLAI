@@ -394,13 +394,23 @@ class SLAISchedulerConfig(BaseSchedulerConfig):
         max_model_len: int,
         num_pipeline_stages: int,
         token_budget: int,
-        offset : float,
+        fcfs: bool,
+        fixed_offset: bool,
+        below_memory_limit_offset: int,
+        above_memory_limit_offset: int,
+        memory_limit: float,
+        user_priority: bool,
         time_between_tokens: float,
         limit_total_decodes: int,
     ) -> None:
         super().__init__(max_num_seqs, max_model_len, num_pipeline_stages)
         self.token_budget = token_budget
-        self.offset = offset
+        self.fcfs = fcfs
+        self.fixed_offset = fixed_offset
+        self.below_memory_limit_offset = below_memory_limit_offset
+        self.above_memory_limit_offset = above_memory_limit_offset
+        self.memory_limit = memory_limit
+        self.user_priority = user_priority
         self.time_between_tokens = time_between_tokens
         self.limit_total_decodes = limit_total_decodes
 

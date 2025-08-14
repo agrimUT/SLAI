@@ -65,10 +65,15 @@ class BenchmarkRunner:
             chunk_size = self._config.sarathi_scheduler_chunk_size
         elif self._config.replica_scheduler_provider == "simple_chunking":
             chunk_size = self._config.simple_chunking_scheduler_chunk_size
-        token_budget = offset = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
+        token_budget = fcfs = fixed_offset = below_memory_limit_offset = above_memory_limit_offset = memory_limit = user_priority = time_between_tokens = process_smallest_prefill = limit_total_decodes = None
         if self._config.replica_scheduler_provider == "slai_scheduler":
             token_budget        = self._config.slai_scheduler_token_budget
-            offset              = self._config.slai_scheduler_offset
+            fcfs               = self._config.slai_scheduler_fcfs
+            fixed_offset       = self._config.slai_scheduler_fixed_offset
+            below_memory_limit_offset = self._config.slai_scheduler_below_memory_limit_offset
+            above_memory_limit_offset = self._config.slai_scheduler_above_memory_limit_offset
+            memory_limit       = self._config.slai_scheduler_memory_limit
+            user_priority      = self._config.slai_scheduler_user_priority
             time_between_tokens = self._config.slai_scheduler_time_between_tokens
             limit_total_decodes = self._config.slai_scheduler_limit_total_decodes
         self._llm_engine = LLMEngine.from_engine_args(
@@ -101,7 +106,12 @@ class BenchmarkRunner:
             max_num_batched_tokens=self._config.vllm_scheduler_max_tokens_in_batch,
             # last‑minute and slai scheduler config
             token_budget        = token_budget,
-            offset              = offset,
+            fcfs               = fcfs,
+            fixed_offset       = fixed_offset,
+            below_memory_limit_offset = below_memory_limit_offset,
+            above_memory_limit_offset = above_memory_limit_offset,
+            memory_limit       = memory_limit,
+            user_priority      = user_priority,
             time_between_tokens = time_between_tokens,
             process_smallest_prefill = process_smallest_prefill,
             limit_total_decodes = limit_total_decodes,
